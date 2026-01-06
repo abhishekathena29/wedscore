@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "602698384232",
+    "project_id": "wedscore-3c2fc",
+    "storage_bucket": "wedscore-3c2fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:602698384232:android:0834d457f5df6ed00f0cdd",
+        "android_client_info": {
+          "package_name": "com.example.wedscore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzF-1EgQ5zov_BvIuIkeocTFmDMSN0SVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
