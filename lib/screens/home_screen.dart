@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../providers/wedding_provider.dart';
 import '../widgets/dashboard/budget_overview.dart';
 import '../widgets/dashboard/checklist_preview.dart';
 import '../widgets/dashboard/city_selector.dart';
 import '../widgets/dashboard/vendor_preview.dart';
 import '../widgets/layout/mobile_scaffold.dart';
+import '../widgets/collaboration/member_chip.dart';
+import '../widgets/collaboration/invite_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -69,11 +73,135 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 20),
+            Consumer<WeddingProvider>(
+              builder: (context, weddingProvider, child) {
+                if (weddingProvider.hasWedding &&
+                    weddingProvider.members.isNotEmpty) {
+                  return Column(
+                    children: [
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Team Members',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
+                                  InviteButton(
+                                    onPressed: () {
+                                      _showInviteDialog(
+                                          context, weddingProvider);
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: weddingProvider.members
+                                    .map((member) {
+                                  return MemberChip(
+                                    name: member['name'] ?? 'Unknown',
+                                    role: member['role'] ?? 'viewer',
+                                    isOwner: member['role'] == 'owner',
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
             const BudgetOverview(),
             const SizedBox(height: 16),
             const ChecklistPreview(),
             const SizedBox(height: 16),
             const VendorPreview(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInviteDialog(
+      BuildContext context, WeddingProvider weddingProvider) {
+    final emailController = TextEditingController();
+    String selectedRole = 'editor';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Invite Family Member'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'family@example.com',
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              const Text('Role'),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'editor', label: Text('Editor')),
+                  ButtonSegment(value: 'viewer', label: Text('Viewer')),
+                ],
+                selected: {selectedRole},
+                onSelectionChanged: (Set<String> newSelection) {
+                  setState(() {
+                    selectedRole = newSelection.first;
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (emailController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter an email')),
+                  );
+                  return;
+                }
+                await weddingProvider.inviteMember(
+                  email: emailController.text.trim(),
+                  role: selectedRole,
+                );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invitation sent!')),
+                  );
+                }
+              },
+              child: const Text('Send Invite'),
+            ),
           ],
         ),
       ),

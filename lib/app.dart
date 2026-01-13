@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
+import 'providers/auth_provider.dart';
+import 'providers/wedding_provider.dart';
+import 'screens/onboarding/welcome_screen.dart';
+import 'screens/onboarding/auth_options_screen.dart';
+import 'screens/onboarding/profile_setup_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
 import 'screens/checklist_screen.dart';
 import 'screens/gallery_screen.dart';
 import 'screens/home_screen.dart';
@@ -13,18 +22,87 @@ class WedScoreApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WedScore',
-      theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.home,
-      routes: {
-        AppRoutes.home: (context) => const HomeScreen(),
-        AppRoutes.checklist: (context) => const ChecklistScreen(),
-        AppRoutes.vendors: (context) => const VendorsScreen(),
-        AppRoutes.gallery: (context) => const GalleryScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => WeddingProvider()),
+      ],
+      child: MaterialApp(
+        title: 'WedScore',
+        theme: AppTheme.lightTheme,
+        initialRoute: AppRoutes.welcome,
+        routes: {
+          AppRoutes.welcome: (context) => const WelcomeScreen(),
+          AppRoutes.onboardingAuth: (context) => const AuthOptionsScreen(),
+          AppRoutes.login: (context) => const LoginScreen(),
+          AppRoutes.signup: (context) => const SignUpScreen(),
+          AppRoutes.profileSetup: (context) => const ProfileSetupScreen(),
+          AppRoutes.home: (context) => const AuthGuard(child: HomeScreen()),
+          AppRoutes.checklist: (context) => const AuthGuard(child: ChecklistScreen()),
+          AppRoutes.vendors: (context) => const AuthGuard(child: VendorsScreen()),
+          AppRoutes.gallery: (context) => const AuthGuard(child: GalleryScreen()),
+        },
+        onUnknownRoute: (settings) =>
+            MaterialPageRoute(builder: (context) => const NotFoundScreen()),
+      ),
+    );
+  }
+}
+
+class AuthGuard extends StatelessWidget {
+  const AuthGuard({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<firebase_auth.User?>(
+      stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.data == null) {
+          // User not authenticated, redirect to welcome
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // User authenticated, check onboarding
+        return FutureBuilder<bool>(
+          future: Provider.of<AuthProvider>(context, listen: false)
+              .checkOnboardingStatus(),
+          builder: (context, onboardingSnapshot) {
+            if (onboardingSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (onboardingSnapshot.data == false) {
+              // Onboarding not completed
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context)
+                    .pushReplacementNamed(AppRoutes.profileSetup);
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // All checks passed, show the child
+            return child;
+          },
+        );
       },
-      onUnknownRoute: (settings) =>
-          MaterialPageRoute(builder: (context) => const NotFoundScreen()),
     );
   }
 }

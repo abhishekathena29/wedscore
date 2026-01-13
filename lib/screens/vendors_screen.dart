@@ -103,7 +103,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedCity,
+                    initialValue: selectedCity,
                     items: [
                       const DropdownMenuItem(value: 'All', child: Text('All Cities')),
                       ...cities
@@ -120,7 +120,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedCategory,
+                    initialValue: selectedCategory,
                     items: [
                       const DropdownMenuItem(value: 'All', child: Text('All Categories')),
                       ...categories
@@ -137,7 +137,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    value: selectedPrice,
+                    initialValue: selectedPrice,
                     items: const [
                       DropdownMenuItem(value: 0, child: Text('All Budgets')),
                       DropdownMenuItem(value: 1, child: Text('₹ - Budget')),
