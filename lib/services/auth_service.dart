@@ -47,7 +47,7 @@ class AuthService {
         'name': name,
         'email': email,
         'role': role,
-        'createdAt': FieldValue.serverTimestamp(),
+        'createdAt': Timestamp.now(),
         'weddingId': null, // Will be set when joining/creating a wedding
       });
 
@@ -104,7 +104,7 @@ class AuthService {
           'name': userCredential.user?.displayName ?? 'User',
           'email': userCredential.user?.email ?? '',
           'role': 'couple', // Default role
-          'createdAt': FieldValue.serverTimestamp(),
+          'createdAt': Timestamp.now(),
           'weddingId': null,
         });
       }
