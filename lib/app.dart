@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import 'providers/auth_provider.dart';
+import 'providers/budget_provider.dart';
+import 'providers/checklist_provider.dart';
+import 'providers/vendor_provider.dart';
 import 'providers/wedding_provider.dart';
 import 'screens/onboarding/welcome_screen.dart';
 import 'screens/onboarding/auth_options_screen.dart';
@@ -25,12 +28,15 @@ class WedScoreApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => ChecklistProvider()),
+        ChangeNotifierProvider(create: (_) => VendorProvider()),
         ChangeNotifierProvider(create: (_) => WeddingProvider()),
       ],
       child: MaterialApp(
         title: 'WedScore',
         theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.welcome,
+        initialRoute: AppRoutes.home,
         routes: {
           AppRoutes.welcome: (context) => const WelcomeScreen(),
           AppRoutes.onboardingAuth: (context) => const AuthOptionsScreen(),
@@ -57,7 +63,8 @@ class AuthGuard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebase_auth.User?>(
-      stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
+      stream: Provider.of<AuthProvider>(context, listen: false)
+          .authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -68,7 +75,10 @@ class AuthGuard extends StatelessWidget {
         if (snapshot.data == null) {
           // User not authenticated, redirect to welcome
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoutes.welcome,
+              (route) => false,
+            );
           });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -90,8 +100,10 @@ class AuthGuard extends StatelessWidget {
             if (onboardingSnapshot.data == false) {
               // Onboarding not completed
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context)
-                    .pushReplacementNamed(AppRoutes.profileSetup);
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.profileSetup,
+                  (route) => false,
+                );
               });
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),

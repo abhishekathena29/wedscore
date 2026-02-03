@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_routes.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/auth_button.dart';
 
@@ -36,13 +37,21 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
+      final completed = await authProvider.checkOnboardingStatus();
       if (mounted) {
         // Check if onboarding completed
-        final completed = await authProvider.checkOnboardingStatus();
         if (!completed) {
-          Navigator.pushReplacementNamed(context, '/profile-setup');
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.profileSetup,
+            (route) => false,
+          );
         } else {
-          Navigator.pushReplacementNamed(context, '/');
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.home,
+            (route) => false,
+          );
         }
       }
     } catch (e) {
@@ -61,9 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Sign In'),
-      ),
+      appBar: AppBar(title: const Text('Sign In')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -80,9 +87,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Sign in to continue planning',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 32),
                 AuthTextField(
@@ -136,13 +143,60 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return OutlinedButton.icon(
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await authProvider.signInWithGoogle();
+                                if (mounted) {
+                                  final completed = await authProvider
+                                      .checkOnboardingStatus();
+                                if (!completed) {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      AppRoutes.profileSetup,
+                                      (route) => false,
+                                    );
+                                  } else {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      AppRoutes.home,
+                                      (route) => false,
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Login failed: ${e.toString()}',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      icon: const Icon(Icons.g_mobiledata),
+                      label: const Text('Continue with Google'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text('Don\'t have an account? '),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/auth/signup');
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.signup,
+                        );
                       },
                       child: const Text('Sign up'),
                     ),

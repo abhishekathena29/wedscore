@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -48,7 +49,7 @@ class WelcomeScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/onboarding/auth');
+                    Navigator.pushNamed(context, AppRoutes.onboardingAuth);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -63,7 +64,7 @@ class WelcomeScreen extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   // Skip to login
-                  Navigator.pushNamed(context, '/auth/login');
+                  Navigator.pushNamed(context, AppRoutes.login);
                 },
                 child: const Text('Already have an account?'),
               ),

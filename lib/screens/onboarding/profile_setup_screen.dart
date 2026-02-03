@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/wedding_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_routes.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/auth_button.dart';
 
@@ -55,7 +56,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       await authProvider.completeOnboarding();
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.home,
+          (route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {

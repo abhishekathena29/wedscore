@@ -12,7 +12,12 @@
           "package_name": "com.example.wedscore"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "602698384232-ljee3aof4u3d165mk0qg0ser39mf06o5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDzF-1EgQ5zov_BvIuIkeocTFmDMSN0SVY"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "602698384232-ljee3aof4u3d165mk0qg0ser39mf06o5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "602698384232-hgkq9fd48r95rv0p5a702g0k3ohsa6ui.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wedscore"
+              }
+            }
+          ]
         }
       }
     }

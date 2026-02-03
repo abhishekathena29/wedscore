@@ -12,6 +12,7 @@ class MobileScaffold extends StatelessWidget {
     this.title,
     this.showLogo = true,
     this.floatingActionButton,
+    this.allowBack = true,
   });
 
   final Widget child;
@@ -19,42 +20,47 @@ class MobileScaffold extends StatelessWidget {
   final String? title;
   final bool showLogo;
   final Widget? floatingActionButton;
+  final bool allowBack;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: showLogo
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.favorite, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    'WedPlan',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              )
-            : Text(
-                title ?? '',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: child,
-      ),
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomNav(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          final route = AppRoutes.routeForIndex(index);
-          if (ModalRoute.of(context)?.settings.name != route) {
-            Navigator.of(context).pushReplacementNamed(route);
-          }
-        },
+    return PopScope(
+      canPop: allowBack,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: allowBack,
+          title: showLogo
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.favorite, color: AppColors.primary, size: 20),
+                    const SizedBox(width: 6),
+                    Text(
+                      'WedPlan',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                )
+              : Text(
+                  title ?? '',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+        ),
+        body: SafeArea(
+          top: false,
+          child: child,
+        ),
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        bottomNavigationBar: BottomNav(
+          currentIndex: currentIndex,
+          onTap: (index) {
+            final route = AppRoutes.routeForIndex(index);
+            if (ModalRoute.of(context)?.settings.name != route) {
+              Navigator.of(context).pushReplacementNamed(route);
+            }
+          },
+        ),
       ),
     );
   }

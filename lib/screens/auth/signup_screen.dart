@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_routes.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/auth_button.dart';
 
@@ -45,7 +46,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/profile-setup');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.profileSetup,
+          (route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -215,7 +220,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const Text('Already have an account? '),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/auth/login');
+                        Navigator.pushReplacementNamed(
+                            context, AppRoutes.login);
                       },
                       child: const Text('Sign in'),
                     ),

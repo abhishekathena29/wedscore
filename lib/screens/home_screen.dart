@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../providers/vendor_provider.dart';
 import '../providers/wedding_provider.dart';
 import '../widgets/dashboard/budget_overview.dart';
 import '../widgets/dashboard/checklist_preview.dart';
 import '../widgets/dashboard/city_selector.dart';
 import '../widgets/dashboard/vendor_preview.dart';
 import '../widgets/layout/mobile_scaffold.dart';
+import '../widgets/layout/app_card.dart';
 import '../widgets/collaboration/member_chip.dart';
 import '../widgets/collaboration/invite_button.dart';
 
@@ -22,55 +24,84 @@ class _HomeScreenState extends State<HomeScreen> {
   String selectedCity = 'Jaipur';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Provider.of<VendorProvider>(context, listen: false).loadIfNeeded();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MobileScaffold(
       currentIndex: 0,
+      allowBack: false,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              children: [
-                Text(
-                  'Your Wedding Journey',
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Plan your perfect day with ease',
-                  style: Theme.of(context).textTheme.labelSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            AppCard(
+              child: Column(
+                children: [
+                  Text(
+                    'Your Wedding Journey',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Plan your perfect day with ease',
+                    style: Theme.of(context).textTheme.labelSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Planning in',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      const SizedBox(width: 6),
+                      CitySelector(
+                        selectedCity: selectedCity,
+                        onCityChange: (city) => setState(() => selectedCity = city),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final tileWidth =
+                    (constraints.maxWidth - 8) / 2;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Text(
-                      'Planning in',
-                      style: Theme.of(context).textTheme.labelSmall,
+                    SizedBox(
+                      width: tileWidth,
+                      child: const _StatTile(label: 'Days', value: '120'),
                     ),
-                    const SizedBox(width: 6),
-                    CitySelector(
-                      selectedCity: selectedCity,
-                      onCityChange: (city) => setState(() => selectedCity = city),
+                    SizedBox(
+                      width: tileWidth,
+                      child: const _StatTile(label: 'Booked', value: '8'),
+                    ),
+                    SizedBox(
+                      width: tileWidth,
+                      child: const _StatTile(label: 'Budget', value: '65%'),
+                    ),
+                    SizedBox(
+                      width: tileWidth,
+                      child: const _StatTile(label: 'Tasks', value: '12'),
                     ),
                   ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: const [
-                Expanded(child: _StatTile(label: 'Days', value: '120')),
-                SizedBox(width: 8),
-                Expanded(child: _StatTile(label: 'Booked', value: '8')),
-                SizedBox(width: 8),
-                Expanded(child: _StatTile(label: 'Budget', value: '65%')),
-                SizedBox(width: 8),
-                Expanded(child: _StatTile(label: 'Tasks', value: '12')),
-              ],
+                );
+              },
             ),
             const SizedBox(height: 20),
             Consumer<WeddingProvider>(

@@ -19,13 +19,13 @@ class WeddingService {
       'city': city,
       'weddingDate': Timestamp.fromDate(weddingDate),
       'createdBy': user.uid,
-      'createdAt': FieldValue.serverTimestamp(),
+      'createdAt': Timestamp.now(),
       'members': [
         {
           'userId': user.uid,
           'role': 'owner', // owner, editor, viewer
-          'joinedAt': FieldValue.serverTimestamp(),
-        }
+          'joinedAt': Timestamp.now(),
+        },
       ],
     });
 
@@ -47,11 +47,7 @@ class WeddingService {
 
     await _firestore.collection('weddings').doc(weddingId).update({
       'members': FieldValue.arrayUnion([
-        {
-          'userId': user.uid,
-          'role': role,
-          'joinedAt': FieldValue.serverTimestamp(),
-        }
+        {'userId': user.uid, 'role': role, 'joinedAt': Timestamp.now()},
       ]),
     });
 
@@ -70,7 +66,7 @@ class WeddingService {
       'weddingId': weddingId,
       'email': email,
       'role': role,
-      'createdAt': FieldValue.serverTimestamp(),
+      'createdAt': Timestamp.now(),
       'status': 'pending', // pending, accepted, declined
     });
   }
@@ -80,11 +76,9 @@ class WeddingService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
 
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .snapshots()
-        .asyncMap((userDoc) async {
+    return _firestore.collection('users').doc(user.uid).snapshots().asyncMap((
+      userDoc,
+    ) async {
       final weddingId = userDoc.data()?['weddingId'] as String?;
       if (weddingId == null) return null;
       return await _firestore.collection('weddings').doc(weddingId).get();
@@ -98,22 +92,24 @@ class WeddingService {
         .doc(weddingId)
         .snapshots()
         .asyncMap((weddingDoc) async {
-      final members = weddingDoc.data()?['members'] as List<dynamic>? ?? [];
-      final memberDetails = <Map<String, dynamic>>[];
+          final members = weddingDoc.data()?['members'] as List<dynamic>? ?? [];
+          final memberDetails = <Map<String, dynamic>>[];
 
-      for (var member in members) {
-        final userId = member['userId'] as String;
-        final userDoc =
-            await _firestore.collection('users').doc(userId).get();
-        memberDetails.add({
-          'userId': userId,
-          'name': userDoc.data()?['name'] ?? 'Unknown',
-          'email': userDoc.data()?['email'] ?? '',
-          'role': member['role'],
+          for (var member in members) {
+            final userId = member['userId'] as String;
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(userId)
+                .get();
+            memberDetails.add({
+              'userId': userId,
+              'name': userDoc.data()?['name'] ?? 'Unknown',
+              'email': userDoc.data()?['email'] ?? '',
+              'role': member['role'],
+            });
+          }
+
+          return memberDetails;
         });
-      }
-
-      return memberDetails;
-    });
   }
 }

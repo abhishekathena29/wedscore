@@ -70,6 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '602698384232',
     projectId: 'wedscore-3c2fc',
     storageBucket: 'wedscore-3c2fc.firebasestorage.app',
+    iosClientId: '602698384232-hgkq9fd48r95rv0p5a702g0k3ohsa6ui.apps.googleusercontent.com',
     iosBundleId: 'com.example.wedscore',
   );
+
 }

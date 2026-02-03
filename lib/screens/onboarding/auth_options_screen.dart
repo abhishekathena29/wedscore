@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../auth/login_screen.dart';
-import '../auth/signup_screen.dart';
+import '../../utils/app_routes.dart';
 
 class AuthOptionsScreen extends StatelessWidget {
   const AuthOptionsScreen({super.key});
@@ -32,65 +30,56 @@ class AuthOptionsScreen extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignUpScreen(),
-                      ),
-                    );
+                    Navigator.pushNamed(context, AppRoutes.signup);
                   },
                   icon: const Icon(Icons.email),
                   label: const Text('Sign up with Email'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 ),
               ),
-              // if (!kIsWeb) ...[
-              //   const SizedBox(height: 16),
-              //   SizedBox(
-              //     width: double.infinity,
-              //     child: OutlinedButton.icon(
-              //       onPressed: () async {
-              //         // Handle Google sign in (mobile/desktop only)
-              //         final authProvider = Provider.of<AuthProvider>(
-              //           context,
-              //           listen: false,
-              //         );
-              //         try {
-              //           await authProvider.signInWithGoogle();
-              //           if (context.mounted) {
-              //             final completed =
-              //                 await authProvider.checkOnboardingStatus();
-              //             if (!completed) {
-              //               Navigator.pushReplacementNamed(
-              //                   context, '/profile-setup');
-              //             } else {
-              //               Navigator.pushReplacementNamed(context, '/');
-              //             }
-              //           }
-              //         } catch (e) {
-              //           if (context.mounted) {
-              //             ScaffoldMessenger.of(context).showSnackBar(
-              //               SnackBar(content: Text('Error: ${e.toString()}')),
-              //             );
-              //           }
-              //         }
-              //       },
-              //       icon: const Icon(Icons.g_mobiledata),
-              //       label: const Text('Continue with Google'),
-              //       style: OutlinedButton.styleFrom(
-              //         padding: const EdgeInsets.symmetric(vertical: 16),
-              //         shape: RoundedRectangleBorder(
-              //           borderRadius: BorderRadius.circular(12),
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ],
+              const SizedBox(height: 16),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await authProvider.signInWithGoogle();
+                                if (context.mounted) {
+                                  final completed =
+                                      await authProvider.checkOnboardingStatus();
+                                  if (!completed) {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      AppRoutes.profileSetup,
+                                      (route) => false,
+                                    );
+                                  } else {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      AppRoutes.home,
+                                      (route) => false,
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: ${e.toString()}'),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      icon: const Icon(Icons.g_mobiledata),
+                      label: const Text('Continue with Google'),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -98,13 +87,8 @@ class AuthOptionsScreen extends StatelessWidget {
                   const Text('Already have an account? '),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
+                    Navigator.pushNamed(context, AppRoutes.login);
+                  },
                     child: const Text('Sign in'),
                   ),
                 ],

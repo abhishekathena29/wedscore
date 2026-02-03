@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/app_routes.dart';
 
 class NotFoundScreen extends StatelessWidget {
   const NotFoundScreen({super.key});
@@ -24,7 +25,8 @@ class NotFoundScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
+              onPressed: () =>
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.home),
               child: const Text('Return to Home'),
             ),
           ],

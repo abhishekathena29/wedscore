@@ -100,6 +100,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       currentIndex: 3,
       title: 'Gallery',
       showLogo: false,
+      allowBack: false,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
