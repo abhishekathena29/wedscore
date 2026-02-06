@@ -67,8 +67,8 @@ class BudgetProvider with ChangeNotifier {
           .doc(docId);
       batch.set(ref, {
         'name': category.name,
-        'allocated': category.allocated,
-        'spent': category.spent,
+        'allocated': 0,
+        'spent': 0,
       });
     }
     await batch.commit();

@@ -15,6 +15,7 @@ class AppRoutes {
   static const checklist = '/checklist';
   static const vendors = '/vendors';
   static const gallery = '/gallery';
+  static const profile = '/profile';
 
   static String routeForIndex(int index) {
     switch (index) {
@@ -26,6 +27,8 @@ class AppRoutes {
         return vendors;
       case 3:
         return gallery;
+      case 4:
+        return profile;
       default:
         return home;
     }

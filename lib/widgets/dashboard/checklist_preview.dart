@@ -1,39 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../data/mock_data.dart';
-import '../../models/task.dart';
+import '../../providers/checklist_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_routes.dart';
 import '../layout/app_card.dart';
 
-class ChecklistPreview extends StatefulWidget {
+class ChecklistPreview extends StatelessWidget {
   const ChecklistPreview({super.key});
 
   @override
-  State<ChecklistPreview> createState() => _ChecklistPreviewState();
-}
-
-class _ChecklistPreviewState extends State<ChecklistPreview> {
-  late List<Task> tasks;
-
-  @override
-  void initState() {
-    super.initState();
-    tasks = seedTasks();
-  }
-
-  void toggleTask(String taskId) {
-    setState(() {
-      tasks = tasks
-          .map((task) => task.id == taskId
-              ? task.copyWith(completed: !task.completed)
-              : task)
-          .toList();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final checklistProvider = Provider.of<ChecklistProvider>(context);
+    final tasks = checklistProvider.tasks;
     final completed = tasks.where((task) => task.completed).length;
     final total = tasks.length;
     final progress = total == 0 ? 0.0 : completed / total;
@@ -72,7 +51,7 @@ class _ChecklistPreviewState extends State<ChecklistPreview> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: InkWell(
-                onTap: () => toggleTask(task.id),
+                onTap: () => checklistProvider.toggleTask(task),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -86,7 +65,7 @@ class _ChecklistPreviewState extends State<ChecklistPreview> {
                       Checkbox(
                         value: task.completed,
                         activeColor: AppColors.primary,
-                        onChanged: (_) => toggleTask(task.id),
+                        onChanged: (_) => checklistProvider.toggleTask(task),
                       ),
                       const SizedBox(width: 6),
                       Expanded(

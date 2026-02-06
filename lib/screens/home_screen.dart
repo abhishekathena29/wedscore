@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../providers/budget_provider.dart';
+import '../providers/checklist_provider.dart';
 import '../providers/vendor_provider.dart';
 import '../providers/wedding_provider.dart';
+import '../utils/app_routes.dart';
 import '../widgets/dashboard/budget_overview.dart';
 import '../widgets/dashboard/checklist_preview.dart';
 import '../widgets/dashboard/city_selector.dart';
@@ -34,9 +38,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final weddingProvider = context.watch<WeddingProvider>();
+    final budgetProvider = context.watch<BudgetProvider>();
+    final checklistProvider = context.watch<ChecklistProvider>();
+
+    final weddingData =
+        weddingProvider.currentWedding?.data() as Map<String, dynamic>? ?? {};
+    final weddingTimestamp = weddingData['weddingDate'] as Timestamp?;
+    final weddingDate = weddingTimestamp?.toDate();
+    final now = DateTime.now();
+    final daysRemaining = weddingDate == null
+        ? 0
+        : weddingDate
+            .difference(DateTime(now.year, now.month, now.day))
+            .inDays
+            .clamp(0, 99999)
+            .toInt();
+
+    final totalAllocated = budgetProvider.totalAllocated;
+    final totalSpent = budgetProvider.totalSpent;
+    final budgetPercent =
+        totalAllocated == 0 ? 0 : ((totalSpent / totalAllocated) * 100).round();
+
+    final bookedCount = (weddingData['bookedCount'] as num?)?.toInt() ?? 0;
+    final taskCount = checklistProvider.tasks.length;
+
     return MobileScaffold(
       currentIndex: 0,
       allowBack: false,
+      actions: [
+        IconButton(
+          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+          icon: const Icon(Icons.person_outline),
+          tooltip: 'Profile',
+        ),
+      ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
         child: Column(
@@ -85,19 +121,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     SizedBox(
                       width: tileWidth,
-                      child: const _StatTile(label: 'Days', value: '120'),
+                      child: _StatTile(
+                        label: 'Days',
+                        value: daysRemaining.toString(),
+                      ),
                     ),
                     SizedBox(
                       width: tileWidth,
-                      child: const _StatTile(label: 'Booked', value: '8'),
+                      child: _StatTile(
+                        label: 'Booked',
+                        value: bookedCount.toString(),
+                      ),
                     ),
                     SizedBox(
                       width: tileWidth,
-                      child: const _StatTile(label: 'Budget', value: '65%'),
+                      child: _StatTile(
+                        label: 'Budget',
+                        value: '$budgetPercent%',
+                      ),
                     ),
                     SizedBox(
                       width: tileWidth,
-                      child: const _StatTile(label: 'Tasks', value: '12'),
+                      child: _StatTile(
+                        label: 'Tasks',
+                        value: taskCount.toString(),
+                      ),
                     ),
                   ],
                 );

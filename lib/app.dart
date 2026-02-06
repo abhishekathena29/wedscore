@@ -16,6 +16,7 @@ import 'screens/checklist_screen.dart';
 import 'screens/gallery_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/not_found_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/vendors_screen.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_routes.dart';
@@ -47,6 +48,7 @@ class WedScoreApp extends StatelessWidget {
           AppRoutes.checklist: (context) => const AuthGuard(child: ChecklistScreen()),
           AppRoutes.vendors: (context) => const AuthGuard(child: VendorsScreen()),
           AppRoutes.gallery: (context) => const AuthGuard(child: GalleryScreen()),
+          AppRoutes.profile: (context) => const AuthGuard(child: ProfileScreen()),
         },
         onUnknownRoute: (settings) =>
             MaterialPageRoute(builder: (context) => const NotFoundScreen()),

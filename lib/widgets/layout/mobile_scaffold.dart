@@ -12,6 +12,7 @@ class MobileScaffold extends StatelessWidget {
     this.title,
     this.showLogo = true,
     this.floatingActionButton,
+    this.actions,
     this.allowBack = true,
   });
 
@@ -20,6 +21,7 @@ class MobileScaffold extends StatelessWidget {
   final String? title;
   final bool showLogo;
   final Widget? floatingActionButton;
+  final List<Widget>? actions;
   final bool allowBack;
 
   @override
@@ -36,7 +38,7 @@ class MobileScaffold extends StatelessWidget {
                     const Icon(Icons.favorite, color: AppColors.primary, size: 20),
                     const SizedBox(width: 6),
                     Text(
-                      'WedPlan',
+                      'WedScore',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],
@@ -45,6 +47,7 @@ class MobileScaffold extends StatelessWidget {
                   title ?? '',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
+          actions: actions,
         ),
         body: SafeArea(
           top: false,

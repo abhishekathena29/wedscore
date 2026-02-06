@@ -18,6 +18,7 @@ class WeddingService {
       'name': name,
       'city': city,
       'weddingDate': Timestamp.fromDate(weddingDate),
+      'bookedCount': 0,
       'createdBy': user.uid,
       'createdAt': Timestamp.now(),
       'members': [
@@ -76,13 +77,40 @@ class WeddingService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
 
-    return _firestore.collection('users').doc(user.uid).snapshots().asyncMap((
-      userDoc,
-    ) async {
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .asyncExpand((userDoc) {
       final weddingId = userDoc.data()?['weddingId'] as String?;
-      if (weddingId == null) return null;
-      return await _firestore.collection('weddings').doc(weddingId).get();
+      if (weddingId == null) {
+        return Stream.value(null);
+      }
+      return _firestore
+          .collection('weddings')
+          .doc(weddingId)
+          .snapshots()
+          .map((doc) => doc as DocumentSnapshot);
     });
+  }
+
+  Future<void> updateWedding({
+    required String weddingId,
+    String? name,
+    String? city,
+    DateTime? weddingDate,
+    int? bookedCount,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
+    if (city != null) updates['city'] = city;
+    if (weddingDate != null) {
+      updates['weddingDate'] = Timestamp.fromDate(weddingDate);
+    }
+    if (bookedCount != null) updates['bookedCount'] = bookedCount;
+
+    if (updates.isEmpty) return;
+    await _firestore.collection('weddings').doc(weddingId).update(updates);
   }
 
   // Get wedding members

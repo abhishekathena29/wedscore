@@ -72,4 +72,28 @@ class WeddingProvider with ChangeNotifier {
       role: role,
     );
   }
+
+  Future<void> updateWedding({
+    String? name,
+    String? city,
+    DateTime? weddingDate,
+    int? bookedCount,
+  }) async {
+    if (_currentWedding == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _weddingService.updateWedding(
+        weddingId: _currentWedding!.id,
+        name: name,
+        city: city,
+        weddingDate: weddingDate,
+        bookedCount: bookedCount,
+      );
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
