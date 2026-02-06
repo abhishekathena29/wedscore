@@ -35,11 +35,24 @@ class MobileScaffold extends StatelessWidget {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.favorite, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.favorite_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     Text(
                       'WedScore',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 )
@@ -48,11 +61,11 @@ class MobileScaffold extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
           actions: actions,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: AppColors.surface,
         ),
-        body: SafeArea(
-          top: false,
-          child: child,
-        ),
+        body: SafeArea(top: false, child: child),
         floatingActionButton: floatingActionButton,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: BottomNav(

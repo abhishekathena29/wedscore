@@ -52,34 +52,62 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Task'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.add_task_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Add Task'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(labelText: 'Task title'),
+              decoration: const InputDecoration(
+                labelText: 'Task title',
+                prefixIcon: Icon(Icons.task_alt_rounded, size: 20),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextField(
               controller: categoryController,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                prefixIcon: Icon(Icons.category_rounded, size: 20),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: selectedTimeline,
               items: timelineFilters
                   .where((filter) => filter.value != 'All')
-                  .map((filter) => DropdownMenuItem(
-                        value: filter.value,
-                        child: Text(filter.label),
-                      ))
+                  .map(
+                    (filter) => DropdownMenuItem(
+                      value: filter.value,
+                      child: Text(filter.label),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value == null) return;
                 selectedTimeline = value;
               },
-              decoration: const InputDecoration(labelText: 'Timeline'),
+              decoration: const InputDecoration(
+                labelText: 'Timeline',
+                prefixIcon: Icon(Icons.schedule_rounded, size: 20),
+              ),
             ),
           ],
         ),
@@ -93,8 +121,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
               final title = titleController.text.trim();
               final category = categoryController.text.trim();
               if (title.isEmpty || category.isEmpty) return;
-              await Provider.of<ChecklistProvider>(context, listen: false)
-                  .addTask(
+              await Provider.of<ChecklistProvider>(
+                context,
+                listen: false,
+              ).addTask(
                 title: title,
                 timeline: selectedTimeline,
                 category: category,
@@ -115,10 +145,24 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       title: 'Checklist',
       showLogo: false,
       allowBack: false,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openAddTask,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: _openAddTask,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ),
       child: Consumer<ChecklistProvider>(
         builder: (context, checklistProvider, child) {
@@ -130,8 +174,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
           final filteredTasks = tasks.where((task) {
             final timelineMatch =
                 selectedTimeline == 'All' || task.timeline == selectedTimeline;
-            final searchMatch =
-                task.title.toLowerCase().contains(searchQuery.toLowerCase());
+            final searchMatch = task.title.toLowerCase().contains(
+              searchQuery.toLowerCase(),
+            );
             return timelineMatch && searchMatch;
           }).toList();
 
@@ -145,8 +190,20 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppCard(
-                  padding: const EdgeInsets.all(16),
+                // Progress Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -157,184 +214,318 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  'Progress',
+                                  'Overall Progress',
                                   style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                                Text(
-                                  '$completedCount/$totalCount',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textMuted,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '$completedCount/$totalCount',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
-                            LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 6,
-                              backgroundColor: AppColors.primarySoft,
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(999),
+                            const SizedBox(height: 12),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 8,
+                                backgroundColor: Colors.white.withOpacity(0.25),
+                                color: Colors.white,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '${(progress * 100).round()}%',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      const SizedBox(width: 20),
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${(progress * 100).round()}%',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                // Search
                 TextField(
                   controller: searchController,
                   onChanged: (value) => setState(() => searchQuery = value),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Search tasks...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppColors.border),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                // Filter chips
                 SizedBox(
-                  height: 38,
+                  height: 42,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: timelineFilters.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
                     itemBuilder: (context, index) {
                       final filter = timelineFilters[index];
                       final selected = selectedTimeline == filter.value;
-                      return ChoiceChip(
-                        label: Text(filter.label),
-                        selected: selected,
-                        onSelected: (_) =>
+                      return GestureDetector(
+                        onTap: () =>
                             setState(() => selectedTimeline = filter.value),
-                        selectedColor: AppColors.primary,
-                        backgroundColor: AppColors.surface,
-                        labelStyle: TextStyle(
-                          fontSize: 11,
-                          color: selected ? Colors.white : AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: selected
+                                ? AppColors.primaryGradient
+                                : null,
+                            color: selected ? null : AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: selected
+                                ? null
+                                : Border.all(color: AppColors.border),
+                            boxShadow: selected
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            filter.label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: selected
+                                  ? Colors.white
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                // Task groups
                 ...groupedTasks.entries.map((entry) {
                   final timeline = entry.key;
                   final timelineTasks = entry.value;
                   final isExpanded = expandedSections[timeline] ?? true;
-                  final completedInGroup =
-                      timelineTasks.where((task) => task.completed).length;
+                  final completedInGroup = timelineTasks
+                      .where((task) => task.completed)
+                      .length;
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: 14),
                     child: AppCard(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
                           InkWell(
                             onTap: () => toggleSection(timeline),
+                            borderRadius: BorderRadius.circular(12),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '$timeline before',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _Badge(
-                                        text:
-                                            '$completedInGroup/${timelineTasks.length}',
-                                      ),
-                                    ],
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primarySoft,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.schedule_rounded,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '$timeline before',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: AppColors.primaryGradient,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '$completedInGroup/${timelineTasks.length}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
                                   Icon(
                                     isExpanded
-                                        ? Icons.expand_less
-                                        : Icons.expand_more,
+                                        ? Icons.keyboard_arrow_up_rounded
+                                        : Icons.keyboard_arrow_down_rounded,
                                     color: AppColors.textMuted,
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          if (isExpanded)
-                            Column(
-                              children: timelineTasks.map((task) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: InkWell(
-                                    onTap: () => toggleTask(task),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
+                          if (isExpanded) ...[
+                            const SizedBox(height: 12),
+                            ...timelineTasks.asMap().entries.map((taskEntry) {
+                              final taskIndex = taskEntry.key;
+                              final task = taskEntry.value;
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: taskIndex < timelineTasks.length - 1
+                                      ? 10
+                                      : 0,
+                                ),
+                                child: InkWell(
+                                  onTap: () => toggleTask(task),
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: task.completed
+                                          ? AppColors.primarySoft
+                                          : AppColors.background,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
                                         color: task.completed
-                                            ? AppColors.primarySoft
-                                            : AppColors.background,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: AppColors.border),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Checkbox(
-                                            value: task.completed,
-                                            activeColor: AppColors.primary,
-                                            onChanged: (_) => toggleTask(task),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              task.title,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: task.completed
-                                                    ? AppColors.textMuted
-                                                    : AppColors.textPrimary,
-                                                decoration: task.completed
-                                                    ? TextDecoration.lineThrough
-                                                    : null,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                            ? AppColors.primary.withOpacity(0.3)
+                                            : AppColors.border,
                                       ),
                                     ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            gradient: task.completed
+                                                ? AppColors.primaryGradient
+                                                : null,
+                                            color: task.completed
+                                                ? null
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: task.completed
+                                                ? null
+                                                : Border.all(
+                                                    color: AppColors.border,
+                                                    width: 2,
+                                                  ),
+                                          ),
+                                          child: task.completed
+                                              ? const Icon(
+                                                  Icons.check_rounded,
+                                                  size: 16,
+                                                  color: Colors.white,
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Text(
+                                            task.title,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: task.completed
+                                                  ? AppColors.textMuted
+                                                  : AppColors.textPrimary,
+                                              decoration: task.completed
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                ),
+                              );
+                            }),
+                          ],
                         ],
                       ),
                     ),
                   );
                 }),
                 if (groupedTasks.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Text(
-                      'No tasks yet',
-                      style: Theme.of(context).textTheme.labelSmall,
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    alignment: Alignment.center,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.checklist_rounded,
+                          size: 56,
+                          color: AppColors.textMuted.withOpacity(0.4),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No tasks yet',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(color: AppColors.textMuted),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap + to add your first task',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
                     ),
                   ),
                 const SizedBox(height: 24),
@@ -352,25 +543,4 @@ class _TimelineFilter {
 
   final String label;
   final String value;
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
 }

@@ -35,6 +35,7 @@ class WedScoreApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WeddingProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'WedScore',
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.home,
@@ -45,10 +46,14 @@ class WedScoreApp extends StatelessWidget {
           AppRoutes.signup: (context) => const SignUpScreen(),
           AppRoutes.profileSetup: (context) => const ProfileSetupScreen(),
           AppRoutes.home: (context) => const AuthGuard(child: HomeScreen()),
-          AppRoutes.checklist: (context) => const AuthGuard(child: ChecklistScreen()),
-          AppRoutes.vendors: (context) => const AuthGuard(child: VendorsScreen()),
-          AppRoutes.gallery: (context) => const AuthGuard(child: GalleryScreen()),
-          AppRoutes.profile: (context) => const AuthGuard(child: ProfileScreen()),
+          AppRoutes.checklist: (context) =>
+              const AuthGuard(child: ChecklistScreen()),
+          AppRoutes.vendors: (context) =>
+              const AuthGuard(child: VendorsScreen()),
+          AppRoutes.gallery: (context) =>
+              const AuthGuard(child: GalleryScreen()),
+          AppRoutes.profile: (context) =>
+              const AuthGuard(child: ProfileScreen()),
         },
         onUnknownRoute: (settings) =>
             MaterialPageRoute(builder: (context) => const NotFoundScreen()),
@@ -65,8 +70,10 @@ class AuthGuard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebase_auth.User?>(
-      stream: Provider.of<AuthProvider>(context, listen: false)
-          .authStateChanges,
+      stream: Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -77,10 +84,9 @@ class AuthGuard extends StatelessWidget {
         if (snapshot.data == null) {
           // User not authenticated, redirect to welcome
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.welcome,
-              (route) => false,
-            );
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.welcome, (route) => false);
           });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -89,11 +95,12 @@ class AuthGuard extends StatelessWidget {
 
         // User authenticated, check onboarding
         return FutureBuilder<bool>(
-          future: Provider.of<AuthProvider>(context, listen: false)
-              .checkOnboardingStatus(),
+          future: Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          ).checkOnboardingStatus(),
           builder: (context, onboardingSnapshot) {
-            if (onboardingSnapshot.connectionState ==
-                ConnectionState.waiting) {
+            if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );

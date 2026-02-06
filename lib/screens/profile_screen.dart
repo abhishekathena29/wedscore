@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart' as auth;
 import '../providers/wedding_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_routes.dart';
 import '../widgets/layout/app_card.dart';
 import '../widgets/layout/mobile_scaffold.dart';
 
@@ -25,7 +27,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _weddingDate ?? DateTime.now().add(const Duration(days: 180)),
+      initialDate:
+          _weddingDate ?? DateTime.now().add(const Duration(days: 180)),
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
@@ -50,7 +53,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _saveWeddingChanges() async {
-    final weddingProvider = Provider.of<WeddingProvider>(context, listen: false);
+    final weddingProvider = Provider.of<WeddingProvider>(
+      context,
+      listen: false,
+    );
     if (!weddingProvider.hasWedding) return;
 
     final name = _weddingNameController.text.trim();
@@ -65,9 +71,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile updated')));
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await Provider.of<auth.AuthProvider>(context, listen: false).signOut();
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.welcome, (route) => false);
+      }
     }
   }
 
@@ -98,7 +134,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             Consumer<WeddingProvider>(
               builder: (context, weddingProvider, child) {
-                final weddingData = weddingProvider.currentWedding?.data()
+                final weddingData =
+                    weddingProvider.currentWedding?.data()
                         as Map<String, dynamic>? ??
                     {};
                 if (weddingData.isNotEmpty) {
@@ -111,9 +148,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   bookedController: _bookedController,
                   weddingDate: _weddingDate,
                   onPickDate: _selectDate,
-                  onSave: weddingProvider.isLoading ? null : _saveWeddingChanges,
+                  onSave: weddingProvider.isLoading
+                      ? null
+                      : _saveWeddingChanges,
                 );
               },
+            ),
+            const SizedBox(height: 24),
+            // Sign Out Button
+            AppCard(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.red,
+                        size: 22,
+                      ),
+                    ),
+                    title: const Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                    subtitle: const Text('Sign out of your account'),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.red,
+                    ),
+                    onTap: _handleSignOut,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -130,46 +204,76 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayName = user?.displayName ?? 'Wedding Planner';
-    final initials = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'W';
+    final initials = displayName.isNotEmpty
+        ? displayName[0].toUpperCase()
+        : 'W';
 
-    return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
               shape: BoxShape.circle,
-              color: AppColors.primarySoft,
-              border: Border.all(color: AppColors.primary, width: 2),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.5),
+                width: 2,
+              ),
             ),
             alignment: Alignment.center,
             child: Text(
               initials,
               style: const TextStyle(
-                fontSize: 20,
+                fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 18),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   displayName,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  user?.email ?? 'No email connected',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: AppColors.textMuted),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    user?.email ?? 'No email connected',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.95),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -204,20 +308,37 @@ class _ProfileDetailsCard extends StatelessWidget {
         final role = (data['role'] ?? 'couple').toString();
 
         return AppCard(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Profile Details',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Profile Details',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              _InfoRow(label: 'Name', value: name),
-              const SizedBox(height: 8),
-              _InfoRow(label: 'Email', value: email),
-              const SizedBox(height: 8),
-              _InfoRow(label: 'Role', value: role),
+              const SizedBox(height: 20),
+              _InfoRow(icon: Icons.badge_rounded, label: 'Name', value: name),
+              const Divider(height: 24),
+              _InfoRow(icon: Icons.email_rounded, label: 'Email', value: email),
+              const Divider(height: 24),
+              _InfoRow(icon: Icons.group_rounded, label: 'Role', value: role),
             ],
           ),
         );
@@ -248,46 +369,67 @@ class _WeddingDetailsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Wedding Details',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Wedding Details',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
               ),
               if (isLoading)
                 const SizedBox(
-                  width: 18,
-                  height: 18,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           TextField(
             controller: weddingNameController,
             decoration: const InputDecoration(
               labelText: 'Wedding Name',
+              prefixIcon: Icon(Icons.celebration_rounded, size: 20),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             controller: cityController,
             decoration: const InputDecoration(
               labelText: 'City',
+              prefixIcon: Icon(Icons.location_city_rounded, size: 20),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           InkWell(
             onTap: onPickDate,
+            borderRadius: BorderRadius.circular(14),
             child: InputDecorator(
               decoration: const InputDecoration(
                 labelText: 'Wedding Date',
-                suffixIcon: Icon(Icons.calendar_today),
+                prefixIcon: Icon(Icons.calendar_month_rounded, size: 20),
+                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded),
               ),
               child: Text(
                 weddingDate == null
@@ -297,25 +439,49 @@ class _WeddingDetailsCard extends StatelessWidget {
                   color: weddingDate == null
                       ? AppColors.textMuted
                       : AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             controller: bookedController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Booked Vendors',
+              prefixIcon: Icon(Icons.storefront_rounded, size: 20),
               hintText: '0',
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onSave,
-              child: const Text('Save Changes'),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: onSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.save_rounded, size: 20),
+                label: const Text('Save Changes'),
+              ),
             ),
           ),
         ],
@@ -325,28 +491,30 @@ class _WeddingDetailsCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
+  final IconData icon;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: AppColors.textMuted),
-        ),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+        Icon(icon, size: 18, color: AppColors.textMuted),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.labelSmall),
+              const SizedBox(height: 2),
+              Text(value, style: Theme.of(context).textTheme.titleSmall),
+            ],
           ),
         ),
       ],

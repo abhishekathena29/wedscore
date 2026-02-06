@@ -5,12 +5,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String _webClientId =
-      '602698384232-ljee3aof4u3d165mk0qg0ser39mf06o5.apps.googleusercontent.com';
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: _webClientId);
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? _user;
   bool _isLoading = false;
@@ -33,6 +30,7 @@ class AuthProvider with ChangeNotifier {
     });
   }
 
+  /// Check if user has completed onboarding (has weddingId or onboardingCompleted flag)
   Future<bool> checkOnboardingStatus() async {
     final user = _auth.currentUser;
     if (user == null) return false;
@@ -58,12 +56,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signUpWithEmail({
+  /// Sign up with email - always returns true (new user needs onboarding)
+  Future<bool> signUpWithEmail({
     required String email,
     required String password,
     required String name,
     required String role,
   }) async {
+    bool isNewUser = true;
     await _runWithLoading(() async {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -81,45 +81,41 @@ class AuthProvider with ChangeNotifier {
         'onboardingCompleted': false,
       });
     });
+    return isNewUser;
   }
 
+  /// Sign in with email - existing user, check onboarding status
   Future<void> signInWithEmail({
     required String email,
     required String password,
   }) async {
     await _runWithLoading(() async {
-      final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = credential.user;
-      if (user == null) return;
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      if (!userDoc.exists) {
-        await _firestore.collection('users').doc(user.uid).set({
-          'name': user.displayName ?? 'User',
-          'email': user.email ?? email,
-          'role': 'couple',
-          'createdAt': Timestamp.now(),
-          'weddingId': null,
-          'onboardingCompleted': false,
-        });
-      }
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      // Don't create user doc on sign in - let onboarding check handle it
     });
   }
 
-  Future<void> signInWithGoogle() async {
+  /// Sign in with Google - returns true if new user (needs onboarding)
+  Future<bool> signInWithGoogle() async {
+    bool isNewUser = false;
     await _runWithLoading(() async {
       UserCredential userCredential;
-      if (kIsWeb) {
-        final provider = GoogleAuthProvider();
-        userCredential = await _auth.signInWithPopup(provider);
-      } else {
-        final googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) return;
 
-        final googleAuth = await googleUser.authentication;
+      if (kIsWeb) {
+        // Web: Use Firebase popup
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        userCredential = await _auth.signInWithPopup(googleProvider);
+      } else {
+        // iOS/Android: Use GoogleSignIn package
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          throw Exception('Google sign in was cancelled');
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
@@ -130,8 +126,11 @@ class AuthProvider with ChangeNotifier {
       final user = userCredential.user;
       if (user == null) return;
 
+      // Check if this is a new user
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       if (!userDoc.exists) {
+        // New user - create document and mark for onboarding
+        isNewUser = true;
         await _firestore.collection('users').doc(user.uid).set({
           'name': user.displayName ?? 'User',
           'email': user.email ?? '',
@@ -140,13 +139,26 @@ class AuthProvider with ChangeNotifier {
           'weddingId': null,
           'onboardingCompleted': false,
         });
+      } else {
+        // Existing user - check onboarding status
+        final data = userDoc.data() ?? {};
+        final weddingId = data['weddingId'] as String?;
+        final onboardingCompleted = data['onboardingCompleted'] == true;
+        isNewUser =
+            !((weddingId != null && weddingId.isNotEmpty) ||
+                onboardingCompleted);
       }
     });
+    return isNewUser;
   }
 
   Future<void> signOut() async {
     if (!kIsWeb) {
-      await _googleSignIn.signOut();
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {
+        // Ignore sign out errors
+      }
     }
     await _auth.signOut();
   }
@@ -159,10 +171,7 @@ class AuthProvider with ChangeNotifier {
     return doc.data();
   }
 
-  Future<void> updateUserProfile({
-    String? name,
-    String? role,
-  }) async {
+  Future<void> updateUserProfile({String? name, String? role}) async {
     final user = _auth.currentUser;
     if (user == null) return;
 

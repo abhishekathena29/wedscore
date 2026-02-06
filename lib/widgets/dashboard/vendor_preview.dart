@@ -17,58 +17,125 @@ class VendorPreview extends StatelessWidget {
         final previewVendors = vendorProvider.vendors.take(3).toList();
 
         return AppCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Top Vendors',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  _ChipBadge(text: '${previewVendors.length}'),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Top Vendors',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${previewVendors.length}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               if (vendorProvider.isLoading)
-                const Center(child: CircularProgressIndicator())
+                Container(
+                  height: 120,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
+                )
               else if (previewVendors.isEmpty)
-                Text(
-                  'No vendors yet',
-                  style: Theme.of(context).textTheme.labelSmall,
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.store_rounded,
+                        size: 40,
+                        color: AppColors.textMuted.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No vendors yet',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
                 )
               else
-                ...previewVendors.map((vendor) {
+                ...previewVendors.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final vendor = entry.value;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: EdgeInsets.only(
+                      bottom: index < previewVendors.length - 1 ? 12 : 0,
+                    ),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.border.withOpacity(0.5),
+                        ),
                       ),
                       child: Row(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                             child: Image.network(
                               vendor.image,
-                              width: 56,
-                              height: 56,
+                              width: 64,
+                              height: 64,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  width: 56,
-                                  height: 56,
-                                  color: AppColors.border,
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.cardGradient,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   alignment: Alignment.center,
-                                  child: const Icon(Icons.photo, size: 16),
+                                  child: Icon(
+                                    Icons.photo_rounded,
+                                    size: 24,
+                                    color: AppColors.textMuted.withOpacity(0.5),
+                                  ),
                                 );
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,28 +147,22 @@ class VendorPreview extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         vendor.name,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const Icon(Icons.favorite_border,
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primarySoft,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.favorite_outline_rounded,
                                         size: 16,
-                                        color: AppColors.textMuted),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    _OutlineBadge(text: vendor.category),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      vendor.city,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.textMuted,
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   ],
@@ -109,23 +170,81 @@ class VendorPreview extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    const Icon(Icons.star,
-                                        size: 14, color: AppColors.primary),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      vendor.wedScore.toStringAsFixed(1),
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppColors.border,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        vendor.category,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textSecondary,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.location_on_rounded,
+                                      size: 12,
+                                      color: AppColors.textMuted,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      vendor.city,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.labelSmall,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: AppColors.primaryGradient,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.star_rounded,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            vendor.wedScore.toStringAsFixed(1),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       priceRangeLabel(vendor.priceRange),
                                       style: const TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.primary,
+                                        color: AppColors.accentGold,
                                       ),
                                     ),
                                   ],
@@ -138,62 +257,27 @@ class VendorPreview extends StatelessWidget {
                     ),
                   );
                 }),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               Center(
                 child: TextButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushReplacementNamed(AppRoutes.vendors),
-                  icon: const Icon(Icons.chevron_right, size: 18),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pushReplacementNamed(AppRoutes.vendors),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                   label: const Text('View all vendors'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _ChipBadge extends StatelessWidget {
-  const _ChipBadge({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-class _OutlineBadge extends StatelessWidget {
-  const _OutlineBadge({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border),
-        color: AppColors.surface,
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600),
-      ),
     );
   }
 }

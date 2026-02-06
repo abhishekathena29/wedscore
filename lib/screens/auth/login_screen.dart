@@ -37,16 +37,54 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      final completed = await authProvider.checkOnboardingStatus();
       if (mounted) {
-        // Check if onboarding completed
+        // Check if user has completed onboarding
+        final completed = await authProvider.checkOnboardingStatus();
         if (!completed) {
+          // User exists but hasn't completed onboarding
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.profileSetup,
             (route) => false,
           );
         } else {
+          // User has completed onboarding, go to home
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.home,
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      // signInWithGoogle returns true if new user (needs onboarding)
+      final isNewUser = await authProvider.signInWithGoogle();
+
+      if (mounted) {
+        if (isNewUser) {
+          // New user or hasn't completed onboarding - show profile setup
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.profileSetup,
+            (route) => false,
+          );
+        } else {
+          // Existing user with completed onboarding - go to home
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.home,
@@ -148,39 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return OutlinedButton.icon(
                       onPressed: authProvider.isLoading
                           ? null
-                          : () async {
-                              try {
-                                await authProvider.signInWithGoogle();
-                                if (mounted) {
-                                  final completed = await authProvider
-                                      .checkOnboardingStatus();
-                                if (!completed) {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      AppRoutes.profileSetup,
-                                      (route) => false,
-                                    );
-                                  } else {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      AppRoutes.home,
-                                      (route) => false,
-                                    );
-                                  }
-                                }
-                              } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Login failed: ${e.toString()}',
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            },
+                          : _handleGoogleSignIn,
                       icon: const Icon(Icons.g_mobiledata),
                       label: const Text('Continue with Google'),
                     );

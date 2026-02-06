@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../data/mock_data.dart';
 import '../../theme/app_theme.dart';
 
 class CitySelector extends StatelessWidget {
@@ -8,47 +7,94 @@ class CitySelector extends StatelessWidget {
     super.key,
     required this.selectedCity,
     required this.onCityChange,
+    this.isLight = false,
   });
 
   final String selectedCity;
   final ValueChanged<String> onCityChange;
+  final bool isLight;
+
+  static const List<String> cities = [
+    'Jaipur',
+    'Delhi',
+    'Mumbai',
+    'Bangalore',
+    'Udaipur',
+    'Goa',
+    'Chennai',
+    'Hyderabad',
+    'Kolkata',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       onSelected: onCityChange,
-      itemBuilder: (context) => cities
-          .map(
-            (city) => PopupMenuItem<String>(
-              value: city,
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(city),
-                ],
+      offset: const Offset(0, 36),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      color: AppColors.surface,
+      elevation: 8,
+      shadowColor: AppColors.primary.withOpacity(0.15),
+      itemBuilder: (context) => cities.map((city) {
+        final isSelected = city == selectedCity;
+        return PopupMenuItem(
+          value: city,
+          child: Row(
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                size: 16,
+                color: isSelected ? AppColors.primary : AppColors.textMuted,
               ),
-            ),
-          )
-          .toList(),
+              const SizedBox(width: 10),
+              Text(
+                city,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                const Icon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.border),
+          color: isLight
+              ? Colors.white.withOpacity(0.25)
+              : AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(20),
+          border: isLight
+              ? null
+              : Border.all(color: AppColors.border.withOpacity(0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.location_on, size: 14, color: AppColors.primary),
-            const SizedBox(width: 4),
             Text(
               selectedCity,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isLight ? Colors.white : AppColors.primary,
+              ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textMuted),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: isLight ? Colors.white : AppColors.primary,
+            ),
           ],
         ),
       ),

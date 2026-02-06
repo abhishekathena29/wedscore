@@ -50,18 +50,22 @@ class _HomeScreenState extends State<HomeScreen> {
     final daysRemaining = weddingDate == null
         ? 0
         : weddingDate
-            .difference(DateTime(now.year, now.month, now.day))
-            .inDays
-            .clamp(0, 99999)
-            .toInt();
+              .difference(DateTime(now.year, now.month, now.day))
+              .inDays
+              .clamp(0, 99999)
+              .toInt();
 
     final totalAllocated = budgetProvider.totalAllocated;
     final totalSpent = budgetProvider.totalSpent;
-    final budgetPercent =
-        totalAllocated == 0 ? 0 : ((totalSpent / totalAllocated) * 100).round();
+    final budgetPercent = totalAllocated == 0
+        ? 0
+        : ((totalSpent / totalAllocated) * 100).round();
 
     final bookedCount = (weddingData['bookedCount'] as num?)?.toInt() ?? 0;
-    final taskCount = checklistProvider.tasks.length;
+    final completedTasks = checklistProvider.tasks
+        .where((t) => t.completed)
+        .length;
+    final totalTasks = checklistProvider.tasks.length;
 
     return MobileScaffold(
       currentIndex: 0,
@@ -69,82 +73,144 @@ class _HomeScreenState extends State<HomeScreen> {
       actions: [
         IconButton(
           onPressed: () => Navigator.of(context).pushNamed(AppRoutes.profile),
-          icon: const Icon(Icons.person_outline),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
           tooltip: 'Profile',
         ),
       ],
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AppCard(
+            // Hero Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
               child: Column(
                 children: [
+                  const Icon(
+                    Icons.favorite_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     'Your Wedding Journey',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Plan your perfect day with ease',
-                    style: Theme.of(context).textTheme.labelSmall,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withOpacity(0.9),
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Planning in',
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                      const SizedBox(width: 6),
-                      CitySelector(
-                        selectedCity: selectedCity,
-                        onCityChange: (city) => setState(() => selectedCity = city),
-                      ),
-                    ],
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Planning in',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        ),
+                        const SizedBox(width: 8),
+                        CitySelector(
+                          selectedCity: selectedCity,
+                          onCityChange: (city) =>
+                              setState(() => selectedCity = city),
+                          isLight: true,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            // Stat tiles grid
             LayoutBuilder(
               builder: (context, constraints) {
-                final tileWidth =
-                    (constraints.maxWidth - 8) / 2;
+                final tileWidth = (constraints.maxWidth - 12) / 2;
                 return Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
                     SizedBox(
                       width: tileWidth,
                       child: _StatTile(
-                        label: 'Days',
+                        label: 'Days Left',
                         value: daysRemaining.toString(),
+                        icon: Icons.calendar_today_rounded,
+                        color: AppColors.primary,
                       ),
                     ),
                     SizedBox(
                       width: tileWidth,
                       child: _StatTile(
-                        label: 'Booked',
+                        label: 'Vendors Booked',
                         value: bookedCount.toString(),
+                        icon: Icons.storefront_rounded,
+                        color: AppColors.accent,
                       ),
                     ),
                     SizedBox(
                       width: tileWidth,
                       child: _StatTile(
-                        label: 'Budget',
+                        label: 'Budget Used',
                         value: '$budgetPercent%',
+                        icon: Icons.account_balance_wallet_rounded,
+                        color: AppColors.accentGold,
                       ),
                     ),
                     SizedBox(
                       width: tileWidth,
                       child: _StatTile(
-                        label: 'Tasks',
-                        value: taskCount.toString(),
+                        label: 'Tasks Done',
+                        value: '$completedTasks/$totalTasks',
+                        icon: Icons.check_circle_rounded,
+                        color: AppColors.success,
                       ),
                     ),
                   ],
@@ -152,51 +218,64 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             const SizedBox(height: 20),
+            // Team members section
             Consumer<WeddingProvider>(
               builder: (context, weddingProvider, child) {
                 if (weddingProvider.hasWedding &&
                     weddingProvider.members.isNotEmpty) {
                   return Column(
                     children: [
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Team Members',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                  InviteButton(
-                                    onPressed: () {
-                                      _showInviteDialog(
-                                          context, weddingProvider);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: weddingProvider.members
-                                    .map((member) {
-                                  return MemberChip(
-                                    name: member['name'] ?? 'Unknown',
-                                    role: member['role'] ?? 'viewer',
-                                    isOwner: member['role'] == 'owner',
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
+                      AppCard(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primarySoft,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.people_rounded,
+                                        size: 18,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Team Members',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                  ],
+                                ),
+                                InviteButton(
+                                  onPressed: () {
+                                    _showInviteDialog(context, weddingProvider);
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: weddingProvider.members.map((member) {
+                                return MemberChip(
+                                  name: member['name'] ?? 'Unknown',
+                                  role: member['role'] ?? 'viewer',
+                                  isOwner: member['role'] == 'owner',
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -218,7 +297,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showInviteDialog(
-      BuildContext context, WeddingProvider weddingProvider) {
+    BuildContext context,
+    WeddingProvider weddingProvider,
+  ) {
     final emailController = TextEditingController();
     String selectedRole = 'editor';
 
@@ -235,16 +316,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   hintText: 'family@example.com',
+                  prefixIcon: Icon(Icons.email_outlined),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 16),
-              const Text('Role'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 20),
+              Text('Role', style: Theme.of(context).textTheme.labelMedium),
+              const SizedBox(height: 10),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'editor', label: Text('Editor')),
-                  ButtonSegment(value: 'viewer', label: Text('Viewer')),
+                  ButtonSegment(
+                    value: 'editor',
+                    label: Text('Editor'),
+                    icon: Icon(Icons.edit_rounded, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'viewer',
+                    label: Text('Viewer'),
+                    icon: Icon(Icons.visibility_rounded, size: 16),
+                  ),
                 ],
                 selected: {selectedRole},
                 onSelectionChanged: (Set<String> newSelection) {
@@ -289,35 +379,55 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value});
+  const _StatTile({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   final String label;
   final String value;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-          ),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
     );

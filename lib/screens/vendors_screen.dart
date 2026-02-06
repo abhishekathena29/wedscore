@@ -56,9 +56,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
       final matchesCity = selectedCity == 'All' || vendor.city == selectedCity;
       final matchesCategory =
           selectedCategory == 'All' || vendor.category == selectedCategory;
-      final matchesPrice = selectedPrice == 0 || vendor.priceRange == selectedPrice;
+      final matchesPrice =
+          selectedPrice == 0 || vendor.priceRange == selectedPrice;
       final query = searchQuery.toLowerCase();
-      final matchesSearch = vendor.name.toLowerCase().contains(query) ||
+      final matchesSearch =
+          vendor.name.toLowerCase().contains(query) ||
           vendor.description.toLowerCase().contains(query);
       return matchesCity && matchesCategory && matchesPrice && matchesSearch;
     }).toList();
@@ -101,7 +103,9 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   decoration: const BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -110,8 +114,10 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Filters',
-                              style: Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            'Filters',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                           if (hasActiveFilters)
                             TextButton(
                               onPressed: () => updateFilters(clearFilters),
@@ -124,12 +130,15 @@ class _VendorsScreenState extends State<VendorsScreen> {
                         initialValue: selectedCity,
                         items: [
                           const DropdownMenuItem(
-                              value: 'All', child: Text('All Cities')),
-                          ...cities
-                              .map((city) => DropdownMenuItem(
-                                    value: city,
-                                    child: Text(city),
-                                  )),
+                            value: 'All',
+                            child: Text('All Cities'),
+                          ),
+                          ...cities.map(
+                            (city) => DropdownMenuItem(
+                              value: city,
+                              child: Text(city),
+                            ),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) return;
@@ -145,27 +154,42 @@ class _VendorsScreenState extends State<VendorsScreen> {
                             value: 'All',
                             child: Text('All Categories'),
                           ),
-                          ...categories
-                              .map((category) => DropdownMenuItem(
-                                    value: category,
-                                    child: Text(category),
-                                  )),
+                          ...categories.map(
+                            (category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            ),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) return;
                           updateFilters(() => selectedCategory = value);
                         },
-                        decoration: const InputDecoration(labelText: 'Category'),
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int>(
                         initialValue: selectedPrice,
                         items: const [
-                          DropdownMenuItem(value: 0, child: Text('All Budgets')),
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text('All Budgets'),
+                          ),
                           DropdownMenuItem(value: 1, child: Text('₹ - Budget')),
-                          DropdownMenuItem(value: 2, child: Text('₹₹ - Moderate')),
-                          DropdownMenuItem(value: 3, child: Text('₹₹₹ - Premium')),
-                          DropdownMenuItem(value: 4, child: Text('₹₹₹₹ - Luxury')),
+                          DropdownMenuItem(
+                            value: 2,
+                            child: Text('₹₹ - Moderate'),
+                          ),
+                          DropdownMenuItem(
+                            value: 3,
+                            child: Text('₹₹₹ - Premium'),
+                          ),
+                          DropdownMenuItem(
+                            value: 4,
+                            child: Text('₹₹₹₹ - Luxury'),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) return;
@@ -178,8 +202,9 @@ class _VendorsScreenState extends State<VendorsScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child:
-                              Text('Show ${filteredVendors(vendors).length} Results'),
+                          child: Text(
+                            'Show ${filteredVendors(vendors).length} Results',
+                          ),
                         ),
                       ),
                     ],
@@ -205,9 +230,9 @@ class _VendorsScreenState extends State<VendorsScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vendor upload failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Vendor upload failed: $error')));
     } finally {
       if (mounted) setState(() => _isImporting = false);
     }
@@ -220,14 +245,14 @@ class _VendorsScreenState extends State<VendorsScreen> {
       title: 'Vendors',
       showLogo: false,
       allowBack: false,
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton.extended(
-              onPressed: _isImporting ? null : _importVendors,
-              backgroundColor: AppColors.primary,
-              label: Text(_isImporting ? 'Uploading...' : 'Upload Vendors'),
-              icon: const Icon(Icons.cloud_upload),
-            )
-          : null,
+      // floatingActionButton: kDebugMode
+      //     ? FloatingActionButton.extended(
+      //         onPressed: _isImporting ? null : _importVendors,
+      //         backgroundColor: AppColors.primary,
+      //         label: Text(_isImporting ? 'Uploading...' : 'Upload Vendors'),
+      //         icon: const Icon(Icons.cloud_upload),
+      //       )
+      //     : null,
       child: Consumer<VendorProvider>(
         builder: (context, vendorProvider, child) {
           if (vendorProvider.isLoading && vendorProvider.vendors.isEmpty) {
@@ -243,12 +268,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
           final categoryOptions = <String>{
             for (final vendor in vendors)
               if (vendor.category.isNotEmpty) vendor.category,
-          }.toList()
-            ..sort();
+          }.toList()..sort();
           final cityOptions = <String>{
-            for (final vendor in vendors) if (vendor.city.isNotEmpty) vendor.city,
-          }.toList()
-            ..sort();
+            for (final vendor in vendors)
+              if (vendor.city.isNotEmpty) vendor.city,
+          }.toList()..sort();
           final categories = ['All', ...categoryOptions];
           final cities = ['All', ...cityOptions];
 
@@ -279,7 +303,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                     Expanded(
                       child: TextField(
                         controller: searchController,
-                        onChanged: (value) => setState(() => searchQuery = value),
+                        onChanged: (value) =>
+                            setState(() => searchQuery = value),
                         decoration: const InputDecoration(
                           hintText: 'Search vendors...',
                           prefixIcon: Icon(Icons.search),
@@ -336,8 +361,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       if (selectedCity != 'All')
                         InputChip(
                           label: Text(selectedCity),
-                          onDeleted: () =>
-                              setState(() => selectedCity = 'All'),
+                          onDeleted: () => setState(() => selectedCity = 'All'),
                         ),
                       if (selectedCategory != 'All')
                         InputChip(
@@ -348,8 +372,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       if (selectedPrice != 0)
                         InputChip(
                           label: Text(priceRangeLabel(selectedPrice)),
-                          onDeleted: () =>
-                              setState(() => selectedPrice = 0),
+                          onDeleted: () => setState(() => selectedPrice = 0),
                         ),
                     ],
                   ),
@@ -362,9 +385,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       '${filtered.length} vendors',
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
-                    _OutlineBadge(
-                      text: '${shortlistedIds.length} saved',
-                    ),
+                    _OutlineBadge(text: '${shortlistedIds.length} saved'),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -383,7 +404,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => VendorDetailScreen(vendor: vendor),
+                              builder: (_) =>
+                                  VendorDetailScreen(vendor: vendor),
                             ),
                           );
                         },
@@ -406,15 +428,19 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                       width: 100,
                                       height: 100,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          width: 100,
-                                          height: 100,
-                                          color: AppColors.border,
-                                          alignment: Alignment.center,
-                                          child: const Icon(Icons.photo, size: 20),
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              width: 100,
+                                              height: 100,
+                                              color: AppColors.border,
+                                              alignment: Alignment.center,
+                                              child: const Icon(
+                                                Icons.photo,
+                                                size: 20,
+                                              ),
+                                            );
+                                          },
                                     ),
                                     Positioned(
                                       bottom: 8,
@@ -428,7 +454,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -459,8 +486,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                       ),
                                       Row(
                                         children: [
-                                          const Icon(Icons.star,
-                                              size: 14, color: AppColors.primary),
+                                          const Icon(
+                                            Icons.star,
+                                            size: 14,
+                                            color: AppColors.primary,
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
                                             vendor.wedScore.toStringAsFixed(1),
@@ -470,8 +500,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          const Icon(Icons.location_on,
-                                              size: 12, color: AppColors.textMuted),
+                                          const Icon(
+                                            Icons.location_on,
+                                            size: 12,
+                                            color: AppColors.textMuted,
+                                          ),
                                           const SizedBox(width: 2),
                                           Expanded(
                                             child: Text(
