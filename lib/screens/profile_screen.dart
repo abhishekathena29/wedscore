@@ -378,17 +378,10 @@ class _WeddingDetailsCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      size: 18,
-                      color: Colors.white,
-                    ),
+                  Image.asset(
+                    'assets/images/wedplan_logo.png',
+                    width: 24,
+                    height: 24,
                   ),
                   const SizedBox(width: 12),
                   Text(

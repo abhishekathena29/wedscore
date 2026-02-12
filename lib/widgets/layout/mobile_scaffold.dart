@@ -35,21 +35,14 @@ class MobileScaffold extends StatelessWidget {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.favorite_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                    Image.asset(
+                      'assets/images/wedplan_logo.png',
+                      width: 32,
+                      height: 32,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'WedScore',
+                      'WedPlan',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),

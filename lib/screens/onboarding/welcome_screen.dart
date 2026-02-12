@@ -23,24 +23,12 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 const Spacer(),
                 // Animated Logo Container
-                Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.favorite_rounded,
-                    size: 70,
-                    color: Colors.white,
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Image.asset(
+                    'assets/images/wedplan_logo.png',
+                    width: 100,
+                    height: 100,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -53,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'WedScore',
+                  'WedPlan',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,

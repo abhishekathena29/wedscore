@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? _user;
   bool _isLoading = false;
@@ -109,18 +108,21 @@ class AuthProvider with ChangeNotifier {
         userCredential = await _auth.signInWithPopup(googleProvider);
       } else {
         // iOS/Android: Use GoogleSignIn package
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) {
-          throw Exception('Google sign in was cancelled');
-        }
+        final GoogleSignInAccount googleUser = await GoogleSignIn.instance
+            .authenticate();
 
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
+        // Obtain the auth details from the request
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+        // Create a new credential
         final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
-        userCredential = await _auth.signInWithCredential(credential);
+
+        // Once signed in, return the UserCredential
+        userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
       }
 
       final user = userCredential.user;
@@ -155,7 +157,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> signOut() async {
     if (!kIsWeb) {
       try {
-        await _googleSignIn.signOut();
+        await GoogleSignIn.instance.signOut();
       } catch (_) {
         // Ignore sign out errors
       }

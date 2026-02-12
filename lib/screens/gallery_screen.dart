@@ -118,17 +118,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.favorite_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                      Image.asset(
+                        'assets/images/wedplan_logo.png',
+                        width: 32,
+                        height: 32,
                       ),
                       const SizedBox(width: 14),
                       Expanded(

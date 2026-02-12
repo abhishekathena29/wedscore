@@ -109,10 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.favorite_rounded,
-                    color: Colors.white,
-                    size: 32,
+                  Image.asset(
+                    'assets/images/wedplan_logo.png',
+                    width: 32,
+                    height: 32,
                   ),
                   const SizedBox(height: 12),
                   Text(

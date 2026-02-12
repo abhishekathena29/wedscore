@@ -21,8 +21,8 @@ import 'screens/vendors_screen.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_routes.dart';
 
-class WedScoreApp extends StatelessWidget {
-  const WedScoreApp({super.key});
+class WedPlanApp extends StatelessWidget {
+  const WedPlanApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class WedScoreApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'WedScore',
+        title: 'WedPlan',
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.home,
         routes: {
