@@ -2230,7 +2230,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Kanha",
@@ -2240,7 +2240,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Gangaur sweets",
@@ -2250,7 +2250,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Feeding Concepts",
@@ -2260,7 +2260,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Haldiram",
@@ -2270,7 +2270,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Kaliram Chaat Creations",
@@ -2280,7 +2280,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Fusion Of Flavours",
@@ -2290,7 +2290,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "The Basil Kitchen",
@@ -2300,7 +2300,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Quisine Catering, Events & More",
@@ -2310,7 +2310,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Jainco Caterers",
@@ -2320,7 +2320,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "The Kitchen Art Co.",
@@ -2330,7 +2330,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Le Chaat Factory",
@@ -2340,7 +2340,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Akshaya Caterers",
@@ -2350,7 +2350,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Elite Caterers",
@@ -2360,7 +2360,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "RK caterers",
@@ -2370,7 +2370,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Harish Reddy Catering",
@@ -2380,7 +2380,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Agra Chaat House",
@@ -2390,7 +2390,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Pandit ji chat bhandar",
@@ -2400,7 +2400,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Jain Chaat Bhandar",
@@ -2409,7 +2409,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Agarwal Chat Bhandar",
@@ -2419,7 +2419,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Bikanervala - Indian Restaurant in Agra",
@@ -2428,7 +2428,7 @@ const List<Map<String, String>> vendorSeedData = [
     "profileName": "",
     "link": "",
     "remarks": "",
-    "category": "Chaat Wale",
+    "category": "Snacks",
   },
   {
     "name": "Shivaani Sen",

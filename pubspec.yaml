@@ -42,6 +42,8 @@ dependencies:
   google_sign_in: 
   shared_preferences: 
   provider: 
+  url_launcher: 
+  fl_chart: 
 
 dev_dependencies:
   flutter_test:

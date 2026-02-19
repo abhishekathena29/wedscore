@@ -537,14 +537,6 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 8),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                          onPressed: () {},
-                                          child: const Text('Contact'),
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),

@@ -6,6 +6,7 @@ import '../../models/budget_category.dart';
 import '../../providers/budget_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../screens/budget_planning_screen.dart';
 import '../layout/app_card.dart';
 
 class BudgetOverview extends StatelessWidget {
@@ -51,9 +52,15 @@ class BudgetOverview extends StatelessWidget {
                 ],
               ),
               TextButton.icon(
-                onPressed: () => _openAddCategory(context),
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('Add'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const BudgetPlanningScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                label: const Text('Manage'),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(
@@ -202,7 +209,6 @@ class BudgetOverview extends StatelessWidget {
                 category: category,
                 percent: percent,
                 isOverBudget: isOverBudget,
-                onEdit: () => _openEditCategory(context, category),
               ),
             );
           }),
@@ -236,129 +242,6 @@ class BudgetOverview extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _openEditCategory(
-    BuildContext context,
-    BudgetCategory category,
-  ) async {
-    final allocatedController = TextEditingController(
-      text: category.allocated.toString(),
-    );
-    final spentController = TextEditingController(
-      text: category.spent.toString(),
-    );
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit ${category.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: allocatedController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Allocated Budget',
-                prefixText: '₹ ',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: spentController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Amount Spent',
-                prefixText: '₹ ',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final allocated = int.tryParse(allocatedController.text) ?? 0;
-              final spent = int.tryParse(spentController.text) ?? 0;
-              await Provider.of<BudgetProvider>(
-                context,
-                listen: false,
-              ).updateCategory(
-                id: category.id,
-                allocated: allocated,
-                spent: spent,
-              );
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _openAddCategory(BuildContext context) async {
-    final nameController = TextEditingController();
-    final allocatedController = TextEditingController();
-    final spentController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Category'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Category name'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: allocatedController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Budget Amount',
-                prefixText: '₹ ',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: spentController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Already Spent',
-                prefixText: '₹ ',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              if (name.isEmpty) return;
-              final allocated = int.tryParse(allocatedController.text) ?? 0;
-              final spent = int.tryParse(spentController.text) ?? 0;
-              await Provider.of<BudgetProvider>(
-                context,
-                listen: false,
-              ).upsertCategory(name: name, allocated: allocated, spent: spent);
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _CategoryItem extends StatelessWidget {
@@ -366,13 +249,11 @@ class _CategoryItem extends StatelessWidget {
     required this.category,
     required this.percent,
     required this.isOverBudget,
-    required this.onEdit,
   });
 
   final BudgetCategory category;
   final double percent;
   final bool isOverBudget;
-  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -431,13 +312,6 @@ class _CategoryItem extends StatelessWidget {
                     color: isOverBudget ? AppColors.warning : AppColors.primary,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_rounded, size: 18),
-                visualDensity: VisualDensity.compact,
-                color: AppColors.textMuted,
               ),
             ],
           ),
