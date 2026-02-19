@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/budget_category.dart';
@@ -92,118 +90,25 @@ class VendorDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             // Budget Section
-            Consumer<BudgetProvider>(
-              builder: (context, budgetProvider, child) {
-                final categories = budgetProvider.categories;
-                return AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Budget & Spending',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _openAllocateBudget(context),
-                            icon: const Icon(
-                              Icons.add_circle_outline,
-                              size: 16,
-                            ),
-                            label: const Text('Add Expense'),
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              textStyle: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (categories.isEmpty)
-                        const Text(
-                          'No budget categories yet. Create one to start tracking.',
-                          style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 13,
-                          ),
-                        )
-                      else
-                        ...categories.map((category) {
-                          final percent = category.allocated == 0
-                              ? 0.0
-                              : (category.spent / category.allocated).clamp(
-                                  0.0,
-                                  1.0,
-                                );
-                          final isOverBudget =
-                              category.spent > category.allocated;
-                          // Highlight if this vendor technically falls under this category
-                          final isRelated =
-                              category.name.toLowerCase().contains(
-                                vendor.category.toLowerCase(),
-                              ) ||
-                              vendor.category.toLowerCase().contains(
-                                category.name.toLowerCase(),
-                              );
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    if (isRelated)
-                                      const Padding(
-                                        padding: EdgeInsets.only(right: 6),
-                                        child: Icon(
-                                          Icons.star,
-                                          size: 12,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                    Expanded(
-                                      child: Text(
-                                        category.name,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: isRelated
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '${formatRupees(category.spent)} / ${formatRupees(category.allocated)}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                LinearProgressIndicator(
-                                  value: percent,
-                                  backgroundColor: AppColors.border.withOpacity(
-                                    0.3,
-                                  ),
-                                  color: isOverBudget
-                                      ? AppColors.warning
-                                      : AppColors.primary,
-                                  minHeight: 6,
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                    ],
+            AppCard(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Budget & Spending',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                );
-              },
+                  TextButton.icon(
+                    onPressed: () => _openAllocateBudget(context),
+                    icon: const Icon(Icons.add_circle_outline, size: 16),
+                    label: const Text('Add Expense'),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             if (contacts.isNotEmpty)

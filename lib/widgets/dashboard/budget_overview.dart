@@ -1,6 +1,6 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import '../../models/budget_category.dart';
 import '../../providers/budget_provider.dart';
@@ -9,8 +9,15 @@ import '../../utils/formatters.dart';
 import '../../screens/budget_planning_screen.dart';
 import '../layout/app_card.dart';
 
-class BudgetOverview extends StatelessWidget {
+class BudgetOverview extends StatefulWidget {
   const BudgetOverview({super.key});
+
+  @override
+  State<BudgetOverview> createState() => _BudgetOverviewState();
+}
+
+class _BudgetOverviewState extends State<BudgetOverview> {
+  int touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +25,15 @@ class BudgetOverview extends StatelessWidget {
     final categories = budgetProvider.categories;
     final totalAllocated = budgetProvider.totalAllocated;
     final totalSpent = budgetProvider.totalSpent;
-    final percentUsed = totalAllocated == 0
-        ? 0.0
-        : (totalSpent / totalAllocated).clamp(0.0, 1.0);
+
+    // Calculate percentage, handling division by zero
+    double percentUsed = 0.0;
+    if (totalAllocated > 0) {
+      percentUsed = (totalSpent / totalAllocated).clamp(0.0, 1.0);
+    } else if (totalSpent > 0) {
+      // If no budget is allocated but money is spent, show as 100% or handling overflows
+      percentUsed = 1.0;
+    }
 
     return AppCard(
       padding: const EdgeInsets.all(20),
@@ -72,58 +85,69 @@ class BudgetOverview extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Redesigned Budget Ring - Fixed overlapping issue
+          // Redesigned Budget Ring - Donut Chart
           Center(
             child: SizedBox(
-              width: 160,
-              height: 160,
+              width: 200,
+              height: 200,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Background ring
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: CircularProgressIndicator(
-                      value: 1,
-                      strokeWidth: 14,
-                      strokeCap: StrokeCap.round,
-                      backgroundColor: Colors.transparent,
-                      color: AppColors.primarySoft,
-                    ),
-                  ),
-                  // Animated progress ring with gradient effect
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: CustomPaint(
-                      painter: _GradientCircularProgressPainter(
-                        progress: percentUsed,
-                        strokeWidth: 14,
-                        gradient: AppColors.primaryGradient,
+                  PieChart(
+                    PieChartData(
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 60,
+                      startDegreeOffset: -90,
+                      sections: _generatePieSections(categories),
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                pieTouchResponse == null ||
+                                pieTouchResponse.touchedSection == null) {
+                              touchedIndex = -1;
+                              return;
+                            }
+                            touchedIndex = pieTouchResponse
+                                .touchedSection!
+                                .touchedSectionIndex;
+                          });
+                        },
                       ),
                     ),
                   ),
-                  // Center content with proper sizing
-                  Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                  // Center content
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (touchedIndex != -1 &&
+                          touchedIndex < categories.length) ...[
                         Text(
-                          '${(percentUsed * 100).round()}%',
+                          categories[touchedIndex].name,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatRupees(categories[touchedIndex].spent),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                                fontSize: 16,
+                              ),
+                        ),
+                      ] else ...[
+                        Text(
+                          (percentUsed > 0 && percentUsed < 0.005)
+                              ? '< 1%'
+                              : '${(percentUsed * 100).round()}%',
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 fontWeight: FontWeight.w700,
@@ -137,7 +161,7 @@ class BudgetOverview extends StatelessWidget {
                               ?.copyWith(color: AppColors.textMuted),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -241,6 +265,63 @@ class BudgetOverview extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<PieChartSectionData> _generatePieSections(
+    List<BudgetCategory> categories,
+  ) {
+    if (categories.isEmpty) {
+      return [
+        PieChartSectionData(
+          color: AppColors.border,
+          value: 1,
+          title: '',
+          radius: 16,
+        ),
+      ];
+    }
+
+    final total = categories.fold<double>(0, (sum, item) => sum + item.spent);
+
+    if (total == 0) {
+      return [
+        PieChartSectionData(
+          color: AppColors.border.withOpacity(0.5),
+          value: 1,
+          title: '',
+          radius: 16,
+        ),
+      ];
+    }
+
+    // Colors for the chart
+    final colors = [
+      const Color(0xFF4285F4), // Google Blue
+      const Color(0xFFEA4335), // Google Red
+      const Color(0xFFFBBC05), // Google Yellow
+      const Color(0xFF34A853), // Google Green
+      const Color(0xFFFB8C00), // Orange
+      const Color(0xFF8E24AA), // Purple
+      const Color(0xFF00ACC1), // Cyan
+    ];
+
+    return categories.asMap().entries.map((entry) {
+      final index = entry.key;
+      final category = entry.value;
+      final value = category.spent.toDouble();
+      final isTouched = index == touchedIndex;
+      final radius = isTouched ? 22.0 : 16.0;
+
+      return PieChartSectionData(
+        color: colors[index % colors.length],
+        value: value > 0
+            ? value
+            : 0.001, // Ensure even 0 spent shows tiny if needed, or filter out
+        title: '',
+        radius: radius,
+        showTitle: false,
+      );
+    }).toList();
   }
 }
 
@@ -359,39 +440,5 @@ class _SummaryTile extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-// Custom painter for gradient circular progress
-class _GradientCircularProgressPainter extends CustomPainter {
-  _GradientCircularProgressPainter({
-    required this.progress,
-    required this.strokeWidth,
-    required this.gradient,
-  });
-
-  final double progress;
-  final double strokeWidth;
-  final LinearGradient gradient;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    final paint = Paint()
-      ..shader = gradient.createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    final sweepAngle = 2 * math.pi * progress;
-    canvas.drawArc(rect, -math.pi / 2, sweepAngle, false, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GradientCircularProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress;
   }
 }

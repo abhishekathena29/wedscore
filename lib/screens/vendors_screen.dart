@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/vendor.dart';
 import '../providers/vendor_provider.dart';
 import '../screens/vendor_detail_screen.dart';
-import '../services/vendor_import_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/layout/mobile_scaffold.dart';
@@ -24,7 +22,6 @@ class _VendorsScreenState extends State<VendorsScreen> {
   String searchQuery = '';
   final TextEditingController searchController = TextEditingController();
   final Set<String> shortlistedIds = {};
-  bool _isImporting = false;
 
   @override
   void initState() {
@@ -216,26 +213,6 @@ class _VendorsScreenState extends State<VendorsScreen> {
         );
       },
     );
-  }
-
-  Future<void> _importVendors() async {
-    if (_isImporting) return;
-    setState(() => _isImporting = true);
-    try {
-      final imported = await VendorImportService().uploadAll();
-      if (!mounted) return;
-      await Provider.of<VendorProvider>(context, listen: false).refresh();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Uploaded $imported vendors to Firebase.')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Vendor upload failed: $error')));
-    } finally {
-      if (mounted) setState(() => _isImporting = false);
-    }
   }
 
   @override
