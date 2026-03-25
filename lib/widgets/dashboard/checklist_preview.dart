@@ -7,7 +7,9 @@ import '../../utils/app_routes.dart';
 import '../layout/app_card.dart';
 
 class ChecklistPreview extends StatelessWidget {
-  const ChecklistPreview({super.key});
+  const ChecklistPreview({super.key, required this.canEdit});
+
+  final bool canEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +121,9 @@ class ChecklistPreview extends StatelessWidget {
                 bottom: index < previewTasks.length - 1 ? 10 : 0,
               ),
               child: InkWell(
-                onTap: () => checklistProvider.toggleTask(task),
+                onTap: canEdit
+                    ? () => checklistProvider.toggleTask(task)
+                    : null,
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
                   padding: const EdgeInsets.symmetric(

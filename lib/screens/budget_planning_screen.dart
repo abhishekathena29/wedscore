@@ -7,7 +7,9 @@ import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 
 class BudgetPlanningScreen extends StatelessWidget {
-  const BudgetPlanningScreen({super.key});
+  const BudgetPlanningScreen({super.key, required this.canEdit});
+
+  final bool canEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +22,11 @@ class BudgetPlanningScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          IconButton(
-            onPressed: () => _openAddCategory(context),
-            icon: const Icon(Icons.add),
-          ),
+          if (canEdit)
+            IconButton(
+              onPressed: () => _openAddCategory(context),
+              icon: const Icon(Icons.add),
+            ),
         ],
       ),
       body: Consumer<BudgetProvider>(
@@ -45,10 +48,11 @@ class BudgetPlanningScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => _openAddCategory(context),
-                    child: const Text('Add Category'),
-                  ),
+                  if (canEdit)
+                    ElevatedButton(
+                      onPressed: () => _openAddCategory(context),
+                      child: const Text('Add Category'),
+                    ),
                 ],
               ),
             );
@@ -60,16 +64,18 @@ class BudgetPlanningScreen extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final category = categories[index];
-              return _BudgetCategoryTile(category: category);
+              return _BudgetCategoryTile(category: category, canEdit: canEdit);
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAddCategory(context),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canEdit
+          ? FloatingActionButton(
+              onPressed: () => _openAddCategory(context),
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -135,9 +141,10 @@ class BudgetPlanningScreen extends StatelessWidget {
 }
 
 class _BudgetCategoryTile extends StatelessWidget {
-  const _BudgetCategoryTile({required this.category});
+  const _BudgetCategoryTile({required this.category, required this.canEdit});
 
   final BudgetCategory category;
+  final bool canEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -200,13 +207,14 @@ class _BudgetCategoryTile extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.edit_outlined,
-                  color: AppColors.textMuted,
+              if (canEdit)
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.textMuted,
+                  ),
+                  onPressed: () => _openEditCategory(context, category),
                 ),
-                onPressed: () => _openEditCategory(context, category),
-              ),
             ],
           ),
           const SizedBox(height: 12),

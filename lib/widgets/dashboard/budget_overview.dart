@@ -10,7 +10,9 @@ import '../../screens/budget_planning_screen.dart';
 import '../layout/app_card.dart';
 
 class BudgetOverview extends StatefulWidget {
-  const BudgetOverview({super.key});
+  const BudgetOverview({super.key, required this.canEdit});
+
+  final bool canEdit;
 
   @override
   State<BudgetOverview> createState() => _BudgetOverviewState();
@@ -68,12 +70,13 @@ class _BudgetOverviewState extends State<BudgetOverview> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const BudgetPlanningScreen(),
+                      builder: (_) =>
+                          BudgetPlanningScreen(canEdit: widget.canEdit),
                     ),
                   );
                 },
                 icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                label: const Text('Manage'),
+                label: Text(widget.canEdit ? 'Manage' : 'View'),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(

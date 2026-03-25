@@ -3,20 +3,33 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+
+import '../models/app_role.dart';
+import '../services/wedding_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final WeddingService _weddingService = WeddingService();
 
   User? _user;
   bool _isLoading = false;
   String? _error;
+  Map<String, dynamic>? _profile;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _profileSub;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Map<String, dynamic>? get profile => _profile;
+  AppRole get appRole => appRoleFromStorage(_profile?['role'] as String?);
+  bool get isPlanner => appRole == AppRole.weddingPlanner;
+  bool get isClient => appRole == AppRole.client;
+  String? get weddingId =>
+      (_profile?['activeWeddingId'] ?? _profile?['weddingId']) as String?;
 
   AuthProvider() {
     _init();
@@ -25,6 +38,21 @@ class AuthProvider with ChangeNotifier {
   void _init() {
     _auth.authStateChanges().listen((user) {
       _user = user;
+      if (user == null) {
+        _profile = null;
+        _profileSub?.cancel();
+        _profileSub = null;
+      } else {
+        _profileSub?.cancel();
+        _profileSub = _firestore
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .listen((snapshot) {
+              _profile = snapshot.data();
+              notifyListeners();
+            });
+      }
       notifyListeners();
     });
   }
@@ -34,11 +62,13 @@ class AuthProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) return false;
 
+    await _weddingService.acceptInvitationIfExists();
+
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     if (!userDoc.exists) return false;
 
     final data = userDoc.data() ?? {};
-    final weddingId = data['weddingId'] as String?;
+    final weddingId = (data['activeWeddingId'] ?? data['weddingId']) as String?;
     final onboardingCompleted = data['onboardingCompleted'] == true;
     return (weddingId != null && weddingId.isNotEmpty) || onboardingCompleted;
   }
@@ -73,10 +103,13 @@ class AuthProvider with ChangeNotifier {
 
       await _firestore.collection('users').doc(credential.user?.uid).set({
         'name': name,
-        'email': email,
+        'email': email.trim().toLowerCase(),
         'role': role,
         'createdAt': Timestamp.now(),
         'weddingId': null,
+        'activeWeddingId': null,
+        'managedWeddingIds': <String>[],
+        'assignedWeddingIds': <String>[],
         'onboardingCompleted': false,
       });
     });
@@ -135,16 +168,20 @@ class AuthProvider with ChangeNotifier {
         isNewUser = true;
         await _firestore.collection('users').doc(user.uid).set({
           'name': user.displayName ?? 'User',
-          'email': user.email ?? '',
-          'role': 'couple',
+          'email': (user.email ?? '').trim().toLowerCase(),
+          'role': AppRole.client.storageValue,
           'createdAt': Timestamp.now(),
           'weddingId': null,
+          'activeWeddingId': null,
+          'managedWeddingIds': <String>[],
+          'assignedWeddingIds': <String>[],
           'onboardingCompleted': false,
         });
       } else {
         // Existing user - check onboarding status
         final data = userDoc.data() ?? {};
-        final weddingId = data['weddingId'] as String?;
+        final weddingId =
+            (data['activeWeddingId'] ?? data['weddingId']) as String?;
         final onboardingCompleted = data['onboardingCompleted'] == true;
         isNewUser =
             !((weddingId != null && weddingId.isNotEmpty) ||
@@ -200,5 +237,11 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _profileSub?.cancel();
+    super.dispose();
   }
 }

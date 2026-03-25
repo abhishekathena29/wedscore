@@ -12,12 +12,20 @@ class BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFFCF8), Color(0xFFFFF3E0)],
+        ),
+        border: Border(
+          top: BorderSide(color: AppColors.border.withOpacity(0.8)),
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
         ],
       ),
@@ -81,7 +89,8 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primarySoft : Colors.transparent,
+          gradient: isSelected ? AppColors.primaryGradient : null,
+          color: isSelected ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -90,7 +99,7 @@ class _NavItem extends StatelessWidget {
             Icon(
               icon,
               size: 22,
-              color: isSelected ? AppColors.primary : AppColors.textMuted,
+              color: isSelected ? Colors.white : AppColors.textMuted,
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 200),
@@ -102,7 +111,7 @@ class _NavItem extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: Colors.white,
                         ),
                       ),
                     )

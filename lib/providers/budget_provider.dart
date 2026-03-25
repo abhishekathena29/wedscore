@@ -19,6 +19,7 @@ class BudgetProvider with ChangeNotifier {
   List<BudgetCategory> _categories = [];
   bool _isLoading = false;
   StreamSubscription<User?>? _authSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userDocSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _budgetSub;
   bool _seededDefaults = false;
 
@@ -30,6 +31,7 @@ class BudgetProvider with ChangeNotifier {
   int get totalSpent => _categories.fold(0, (sum, item) => sum + item.spent);
 
   void _handleAuthChange(User? user) {
+    _userDocSub?.cancel();
     _budgetSub?.cancel();
     _categories = [];
     _seededDefaults = false;
@@ -39,43 +41,59 @@ class BudgetProvider with ChangeNotifier {
       return;
     }
 
-    _budgetSub = _firestore
+    _userDocSub = _firestore
         .collection('users')
         .doc(user.uid)
-        .collection('budgets')
         .snapshots()
-        .listen((snapshot) {
-      if (snapshot.docs.isEmpty && !_seededDefaults) {
-        _seedDefaults(user.uid);
-        return;
-      }
-      _categories = snapshot.docs.map(_mapDocToCategory).toList()
-        ..sort((a, b) => a.name.compareTo(b.name));
-      notifyListeners();
-    });
+        .listen((userDoc) {
+          final weddingId =
+              (userDoc.data()?['activeWeddingId'] ??
+                      userDoc.data()?['weddingId'])
+                  as String?;
+          _budgetSub?.cancel();
+          _categories = [];
+          _seededDefaults = false;
+
+          if (weddingId == null || weddingId.isEmpty) {
+            notifyListeners();
+            return;
+          }
+
+          _budgetSub = _firestore
+              .collection('weddings')
+              .doc(weddingId)
+              .collection('budgets')
+              .snapshots()
+              .listen((snapshot) {
+                if (snapshot.docs.isEmpty && !_seededDefaults) {
+                  _seedDefaults(weddingId);
+                  return;
+                }
+                _categories = snapshot.docs.map(_mapDocToCategory).toList()
+                  ..sort((a, b) => a.name.compareTo(b.name));
+                notifyListeners();
+              });
+        });
   }
 
-  Future<void> _seedDefaults(String userId) async {
+  Future<void> _seedDefaults(String weddingId) async {
     _seededDefaults = true;
     final batch = _firestore.batch();
     for (final category in budgetCategories) {
       final docId = _slugify(category.name);
       final ref = _firestore
-          .collection('users')
-          .doc(userId)
+          .collection('weddings')
+          .doc(weddingId)
           .collection('budgets')
           .doc(docId);
-      batch.set(ref, {
-        'name': category.name,
-        'allocated': 0,
-        'spent': 0,
-      });
+      batch.set(ref, {'name': category.name, 'allocated': 0, 'spent': 0});
     }
     await batch.commit();
   }
 
   BudgetCategory _mapDocToCategory(
-      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data();
     final name = (data['name'] ?? doc.id).toString();
     return BudgetCategory(
@@ -108,21 +126,23 @@ class BudgetProvider with ChangeNotifier {
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
+    final weddingId = await _resolveWeddingId(user.uid);
+    if (weddingId == null) return;
 
     _isLoading = true;
     notifyListeners();
     try {
       final docId = _slugify(name);
       await _firestore
-          .collection('users')
-          .doc(user.uid)
+          .collection('weddings')
+          .doc(weddingId)
           .collection('budgets')
           .doc(docId)
           .set({
-        'name': name,
-        'allocated': allocated,
-        'spent': spent,
-      }, SetOptions(merge: true));
+            'name': name,
+            'allocated': allocated,
+            'spent': spent,
+          }, SetOptions(merge: true));
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -136,16 +156,21 @@ class BudgetProvider with ChangeNotifier {
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
+    final weddingId = await _resolveWeddingId(user.uid);
+    if (weddingId == null) return;
 
     await _firestore
-        .collection('users')
-        .doc(user.uid)
+        .collection('weddings')
+        .doc(weddingId)
         .collection('budgets')
         .doc(id)
-        .update({
-      'allocated': allocated,
-      'spent': spent,
-    });
+        .update({'allocated': allocated, 'spent': spent});
+  }
+
+  Future<String?> _resolveWeddingId(String userId) async {
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+    return (userDoc.data()?['activeWeddingId'] ?? userDoc.data()?['weddingId'])
+        as String?;
   }
 
   String _slugify(String input) {
@@ -156,6 +181,7 @@ class BudgetProvider with ChangeNotifier {
   @override
   void dispose() {
     _authSub?.cancel();
+    _userDocSub?.cancel();
     _budgetSub?.cancel();
     super.dispose();
   }

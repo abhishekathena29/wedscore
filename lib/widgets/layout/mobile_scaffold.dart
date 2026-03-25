@@ -29,6 +29,7 @@ class MobileScaffold extends StatelessWidget {
     return PopScope(
       canPop: allowBack,
       child: Scaffold(
+        extendBody: true,
         appBar: AppBar(
           automaticallyImplyLeading: allowBack,
           title: showLogo
@@ -56,9 +57,42 @@ class MobileScaffold extends StatelessWidget {
           actions: actions,
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
         ),
-        body: SafeArea(top: false, child: child),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.festiveBackground,
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -80,
+                right: -50,
+                child: Container(
+                  width: 220,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.accentGold.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -40,
+                top: 120,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryLight.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              SafeArea(top: false, child: child),
+            ],
+          ),
+        ),
         floatingActionButton: floatingActionButton,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: BottomNav(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/task.dart';
+import '../providers/auth_provider.dart';
 import '../providers/checklist_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/layout/app_card.dart';
@@ -140,30 +141,34 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canEdit = context.watch<AuthProvider>().isPlanner;
+
     return MobileScaffold(
       currentIndex: 1,
       title: 'Checklist',
       showLogo: false,
       allowBack: false,
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.4),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: _openAddTask,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: const Icon(Icons.add_rounded, color: Colors.white),
-        ),
-      ),
+      floatingActionButton: canEdit
+          ? Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                onPressed: _openAddTask,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                child: const Icon(Icons.add_rounded, color: Colors.white),
+              ),
+            )
+          : null,
       child: Consumer<ChecklistProvider>(
         builder: (context, checklistProvider, child) {
           final tasks = checklistProvider.tasks;
@@ -213,8 +218,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Overall Progress',
+                                Text(
+                                  canEdit
+                                      ? 'Planning Progress'
+                                      : 'Shared Progress',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -430,7 +437,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                       : 0,
                                 ),
                                 child: InkWell(
-                                  onTap: () => toggleTask(task),
+                                  onTap: canEdit
+                                      ? () => toggleTask(task)
+                                      : null,
                                   borderRadius: BorderRadius.circular(14),
                                   child: Container(
                                     padding: const EdgeInsets.all(14),
@@ -522,7 +531,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tap + to add your first task',
+                          canEdit
+                              ? 'Tap + to add your first task'
+                              : 'Your planner will add tasks here',
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                       ],

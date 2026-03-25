@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/app_role.dart';
 import '../providers/auth_provider.dart' as auth;
 import '../providers/wedding_provider.dart';
 import '../theme/app_theme.dart';
@@ -22,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _cityController = TextEditingController();
   final _bookedController = TextEditingController();
   DateTime? _weddingDate;
-  bool _didLoadWedding = false;
+  String? _loadedWeddingId;
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
@@ -39,9 +40,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _syncWeddingFields(Map<String, dynamic> data) {
-    if (_didLoadWedding) return;
-    _didLoadWedding = true;
+  void _syncWeddingFields(String weddingId, Map<String, dynamic> data) {
+    if (_loadedWeddingId == weddingId) return;
+    _loadedWeddingId = weddingId;
     _weddingNameController.text = (data['name'] ?? '').toString();
     _cityController.text = (data['city'] ?? '').toString();
     final booked = (data['bookedCount'] as num?)?.toInt() ?? 0;
@@ -118,6 +119,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final authProvider = context.watch<auth.AuthProvider>();
+    final isPlanner = authProvider.isPlanner;
 
     return MobileScaffold(
       currentIndex: 0,
@@ -135,22 +138,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Consumer<WeddingProvider>(
               builder: (context, weddingProvider, child) {
                 final weddingData =
-                    weddingProvider.currentWedding?.data()
-                        as Map<String, dynamic>? ??
-                    {};
+                    weddingProvider.currentWedding?.data() ?? {};
                 if (weddingData.isNotEmpty) {
-                  _syncWeddingFields(weddingData);
+                  _syncWeddingFields(
+                    weddingProvider.currentWedding!.id,
+                    weddingData,
+                  );
                 }
-                return _WeddingDetailsCard(
-                  isLoading: weddingProvider.isLoading,
-                  weddingNameController: _weddingNameController,
-                  cityController: _cityController,
-                  bookedController: _bookedController,
-                  weddingDate: _weddingDate,
-                  onPickDate: _selectDate,
-                  onSave: weddingProvider.isLoading
-                      ? null
-                      : _saveWeddingChanges,
+                return Column(
+                  children: [
+                    if (weddingProvider.workspaces.length > 1) ...[
+                      _WorkspaceSwitcherCard(
+                        activeWeddingId: weddingProvider.activeWeddingId,
+                        workspaces: weddingProvider.workspaces,
+                        onChanged: (value) {
+                          if (value == null) return;
+                          weddingProvider.switchWedding(value);
+                        },
+                        labelForWorkspace: weddingProvider.workspaceLabel,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _WeddingDetailsCard(
+                      isPlanner: isPlanner,
+                      isLoading: weddingProvider.isLoading,
+                      weddingNameController: _weddingNameController,
+                      cityController: _cityController,
+                      bookedController: _bookedController,
+                      weddingDate: _weddingDate,
+                      onPickDate: _selectDate,
+                      onSave: weddingProvider.isLoading
+                          ? null
+                          : _saveWeddingChanges,
+                    ),
+                    if (isPlanner) ...[
+                      const SizedBox(height: 16),
+                      _ClientProfileCard(
+                        clientProfile: weddingProvider.activeClientProfile,
+                      ),
+                    ],
+                  ],
                 );
               },
             ),
@@ -306,6 +333,7 @@ class _ProfileDetailsCard extends StatelessWidget {
             .toString();
         final email = (data['email'] ?? user?.email ?? '').toString();
         final role = (data['role'] ?? 'couple').toString();
+        final roleLabel = appRoleFromStorage(role).label;
 
         return AppCard(
           padding: const EdgeInsets.all(20),
@@ -338,7 +366,11 @@ class _ProfileDetailsCard extends StatelessWidget {
               const Divider(height: 24),
               _InfoRow(icon: Icons.email_rounded, label: 'Email', value: email),
               const Divider(height: 24),
-              _InfoRow(icon: Icons.group_rounded, label: 'Role', value: role),
+              _InfoRow(
+                icon: Icons.group_rounded,
+                label: 'Role',
+                value: roleLabel,
+              ),
             ],
           ),
         );
@@ -349,6 +381,7 @@ class _ProfileDetailsCard extends StatelessWidget {
 
 class _WeddingDetailsCard extends StatelessWidget {
   const _WeddingDetailsCard({
+    required this.isPlanner,
     required this.isLoading,
     required this.weddingNameController,
     required this.cityController,
@@ -358,6 +391,7 @@ class _WeddingDetailsCard extends StatelessWidget {
     required this.onSave,
   });
 
+  final bool isPlanner;
   final bool isLoading;
   final TextEditingController weddingNameController;
   final TextEditingController cityController;
@@ -401,6 +435,7 @@ class _WeddingDetailsCard extends StatelessWidget {
           const SizedBox(height: 24),
           TextField(
             controller: weddingNameController,
+            enabled: isPlanner,
             decoration: const InputDecoration(
               labelText: 'Wedding Name',
               prefixIcon: Icon(Icons.celebration_rounded, size: 20),
@@ -409,6 +444,7 @@ class _WeddingDetailsCard extends StatelessWidget {
           const SizedBox(height: 16),
           TextField(
             controller: cityController,
+            enabled: isPlanner,
             decoration: const InputDecoration(
               labelText: 'City',
               prefixIcon: Icon(Icons.location_city_rounded, size: 20),
@@ -416,7 +452,7 @@ class _WeddingDetailsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           InkWell(
-            onTap: onPickDate,
+            onTap: isPlanner ? onPickDate : null,
             borderRadius: BorderRadius.circular(14),
             child: InputDecorator(
               decoration: const InputDecoration(
@@ -440,6 +476,7 @@ class _WeddingDetailsCard extends StatelessWidget {
           const SizedBox(height: 16),
           TextField(
             controller: bookedController,
+            enabled: isPlanner,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Booked Vendors',
@@ -448,34 +485,146 @@ class _WeddingDetailsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: onSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+          if (isPlanner)
+            SizedBox(
+              width: double.infinity,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                icon: const Icon(Icons.save_rounded, size: 20),
-                label: const Text('Save Changes'),
+                child: ElevatedButton.icon(
+                  onPressed: onSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.save_rounded, size: 20),
+                  label: const Text('Save Changes'),
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                'Your planner manages these wedding details. You can view all updates here as they are changed.',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkspaceSwitcherCard extends StatelessWidget {
+  const _WorkspaceSwitcherCard({
+    required this.activeWeddingId,
+    required this.workspaces,
+    required this.onChanged,
+    required this.labelForWorkspace,
+  });
+
+  final String? activeWeddingId;
+  final List<DocumentSnapshot<Map<String, dynamic>>> workspaces;
+  final ValueChanged<String?> onChanged;
+  final String Function(DocumentSnapshot<Map<String, dynamic>>)
+  labelForWorkspace;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Active Client Workspace',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: activeWeddingId,
+            items: workspaces.map((workspace) {
+              return DropdownMenuItem(
+                value: workspace.id,
+                child: Text(labelForWorkspace(workspace)),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            decoration: const InputDecoration(
+              labelText: 'Client workspace',
+              prefixIcon: Icon(Icons.people_outline_rounded),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ClientProfileCard extends StatelessWidget {
+  const _ClientProfileCard({required this.clientProfile});
+
+  final Map<String, dynamic>? clientProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (clientProfile?['name'] ?? 'No client assigned').toString();
+    final email = (clientProfile?['email'] ?? 'No email assigned').toString();
+    final status = (clientProfile?['inviteStatus'] ?? 'draft').toString();
+
+    return AppCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.badge_outlined,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Client Profile',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _InfoRow(icon: Icons.person_rounded, label: 'Name', value: name),
+          const Divider(height: 24),
+          _InfoRow(icon: Icons.email_rounded, label: 'Email', value: email),
+          const Divider(height: 24),
+          _InfoRow(
+            icon: Icons.mark_email_read_rounded,
+            label: 'Access Status',
+            value: status,
           ),
         ],
       ),

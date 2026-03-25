@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/app_role.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_routes.dart';
@@ -21,7 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _selectedRole = 'couple';
+  AppRole _selectedRole = AppRole.weddingPlanner;
 
   @override
   void dispose() {
@@ -42,7 +43,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         name: _nameController.text.trim(),
-        role: _selectedRole,
+        role: _selectedRole.storageValue,
       );
 
       if (mounted) {
@@ -68,9 +69,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Create Account'),
-      ),
+      appBar: AppBar(title: const Text('Create Account')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -86,10 +85,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Join your wedding planning journey',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                  'Set up your planner or client access',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 32),
                 AuthTextField(
@@ -177,31 +176,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'I am a',
+                  'Account Type',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 8),
-                SegmentedButton<String>(
-                  segments: const [
+                SegmentedButton<AppRole>(
+                  segments: [
                     ButtonSegment(
-                      value: 'couple',
-                      label: Text('Couple'),
+                      value: AppRole.weddingPlanner,
+                      label: const Text('Planner'),
+                      icon: const Icon(Icons.design_services_rounded),
                     ),
                     ButtonSegment(
-                      value: 'family',
-                      label: Text('Family'),
-                    ),
-                    ButtonSegment(
-                      value: 'planner',
-                      label: Text('Planner'),
+                      value: AppRole.client,
+                      label: const Text('Client'),
+                      icon: const Icon(Icons.favorite_rounded),
                     ),
                   ],
                   selected: {_selectedRole},
-                  onSelectionChanged: (Set<String> newSelection) {
+                  onSelectionChanged: (Set<AppRole> newSelection) {
                     setState(() {
                       _selectedRole = newSelection.first;
                     });
                   },
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.border.withOpacity(0.7),
+                    ),
+                  ),
+                  child: Text(
+                    _selectedRole == AppRole.weddingPlanner
+                        ? 'Planners create wedding workspaces, assign clients, and manage budgets, tasks, and vendors.'
+                        : 'Clients receive access from their planner and can track progress, budgets, vendors, and updates in one dashboard.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 Consumer<AuthProvider>(
@@ -221,7 +235,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     TextButton(
                       onPressed: () {
                         Navigator.pushReplacementNamed(
-                            context, AppRoutes.login);
+                          context,
+                          AppRoutes.login,
+                        );
                       },
                       child: const Text('Sign in'),
                     ),

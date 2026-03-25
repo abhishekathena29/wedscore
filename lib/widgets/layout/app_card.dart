@@ -49,18 +49,18 @@ class AppCard extends StatelessWidget {
         );
       case CardVariant.premium:
         return BoxDecoration(
-          color: AppColors.surface,
+          gradient: AppColors.cardGradient,
           borderRadius: radius,
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          border: Border.all(color: AppColors.border.withOpacity(0.75)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: AppColors.primary.withOpacity(0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
+              color: AppColors.accent.withOpacity(0.06),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
